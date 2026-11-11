@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AjaRun Demo by Teman Ngajar – Game Kuis 3D SD sampai SMA/SMK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#8fd3ff;font-family:"Baloo 2",system-ui,sans-serif;color:#1d2340;touch-action:none;user-select:none;-webkit-user-select:none}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .hud{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px;pointer-events:none;z-index:5}
+  .pill{background:rgba(20,28,60,.78);color:#fff;border-radius:999px;padding:4px 14px;font-weight:700;font-size:18px;display:inline-flex;gap:8px;align-items:center;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+  .pill b{color:#ffd54a}
+  .hud .left,.hud .right{display:flex;flex-direction:column;gap:6px}
+  .hud .right{align-items:flex-end}
+  #pauseBtn{pointer-events:auto;border:0;cursor:pointer;font:inherit}
+  #qcard{position:fixed;left:50%;top:58px;transform:translateX(-50%) translateY(-20px);width:min(760px,94vw);background:#fff;border-radius:18px;padding:12px 16px 14px;box-shadow:0 8px 0 rgba(20,28,60,.25),0 12px 30px rgba(0,0,0,.2);opacity:0;transition:.3s;z-index:6;pointer-events:none;border:4px solid #1d2340}
+  #qcard.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #qnum{font-size:14px;font-weight:800;color:#e0563b;letter-spacing:.5px;text-transform:uppercase}
+  #qtext{font-size:clamp(17px,2.6vw,23px);font-weight:700;line-height:1.25;margin:2px 0 8px}
+  #qopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .opt{border-radius:12px;padding:6px 8px;color:#fff;font-weight:700;font-size:clamp(13px,1.9vw,16px);line-height:1.2;display:flex;gap:6px;align-items:flex-start}
+  .opt .k{flex:none;width:24px;height:24px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+  .opt small{display:block;font-size:11px;opacity:.85;font-weight:600}
+  .o0{background:#2f7de1}.o0 .k{color:#2f7de1}
+  .o1{background:#8a4fd8}.o1 .k{color:#8a4fd8}
+  .o2{background:#14a37f}.o2 .k{color:#14a37f}
+  @media (max-width:640px){#qcard{top:122px}.pill{font-size:15px;padding:3px 11px}}
+  #fb{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.8);width:min(560px,90vw);border-radius:18px;padding:14px 18px;text-align:center;opacity:0;transition:.25s;z-index:7;pointer-events:none;color:#fff;border:4px solid #fff;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+  #fb.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #fb.ok{background:#1fa463}#fb.no{background:#e0563b}
+  #fb h2{font-size:30px;line-height:1.1}
+  #fb p{font-size:17px;font-weight:600;line-height:1.3;margin-top:4px}
+  .overlay{position:fixed;inset:0;background:rgba(15,20,45,.38);display:flex;align-items:center;justify-content:center;z-index:10;padding:16px;overflow:auto}
+  .overlay.hide{display:none}
+  .panel{background:#fff;border-radius:24px;padding:22px 24px;width:min(560px,100%);border:5px solid #1d2340;box-shadow:0 10px 0 #1d2340;max-height:calc(100vh - 32px);overflow:auto}
+  .panel h1{font-size:clamp(30px,6vw,42px);line-height:1;color:#e0563b}
+  .panel h1 span{color:#2f7de1}
+  .brand{font-size:15px;font-weight:600;color:#556;margin:2px 0 4px}
+  .brand b{color:#e0563b}
+  .brand.end{text-align:center;margin-top:12px;font-size:14px}
+  .tag{display:inline-block;background:#ffd54a;border-radius:8px;padding:2px 10px;font-weight:800;font-size:14px;margin-bottom:8px}
+  .panel p{font-size:16px;line-height:1.35;margin:8px 0}
+  .ctl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:15px;background:#f3f5ff;border-radius:12px;padding:10px 12px;margin:10px 0}
+  .ctl b{white-space:nowrap}
+  label{font-weight:700;font-size:15px}
+  input{width:100%;font:inherit;font-size:18px;padding:8px 12px;border:3px solid #1d2340;border-radius:12px;margin:4px 0 12px;outline:none}
+  input:focus{border-color:#2f7de1}
+  .btn{display:block;width:100%;font:inherit;font-size:22px;font-weight:800;color:#fff;background:#2f7de1;border:0;border-radius:14px;padding:10px;cursor:pointer;box-shadow:0 5px 0 #1d4f99;transition:transform .1s}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #1d4f99}
+  .btn.alt{background:#1fa463;box-shadow:0 5px 0 #13703f;margin-top:10px}
+  .stars{font-size:42px;text-align:center;letter-spacing:6px;margin:4px 0}
+  .res{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin:10px 0}
+  .res div{background:#f3f5ff;border-radius:12px;padding:8px 4px}
+  .res b{display:block;font-size:26px;color:#2f7de1;line-height:1}
+  .res span{font-size:13px;font-weight:600}
+  .rekap h3{font-size:18px;margin:8px 0 6px}
+  .rk{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:14px;margin-bottom:6px}
+  .rk b{color:#1d2340}
+  .rk i{grid-column:1/-1;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--c) var(--p),#e6e9f5 var(--p))}
+  .rev{margin-top:10px}
+  .rev h3{font-size:18px;margin-bottom:6px}
+  .rev li{list-style:none;background:#fff4f1;border-left:5px solid #e0563b;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:14px;line-height:1.3}
+  .rev li em{font-style:normal;font-weight:700;color:#1fa463}
+  .meta{font-size:13px;color:#667;text-align:center;margin-top:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+  .chip{font:inherit;font-size:15px;font-weight:700;border:3px solid #1d2340;background:#fff;color:#1d2340;border-radius:999px;padding:3px 12px;cursor:pointer}
+  .chip.on{background:#1d2340;color:#ffd54a}
+  .chip small{font-size:12px;font-weight:600;opacity:.7}
+  .chip.guru{border-style:dashed}
+  .chip.guru.on{border-style:solid}
+  .small{font-size:13px;color:#556;margin:-6px 0 10px}
+  .chips.kat{margin-bottom:6px}
+  .chip.lock{opacity:.6;border-style:dashed}
+  .demo-bar{display:none;background:#fff4d6;border:2px solid #f29b1d;border-radius:12px;padding:8px 12px;font-size:14px;margin:6px 0 10px}
+  .demo .demo-bar{display:block}
+  .demo-bar a,.cta{display:inline-block;margin-top:6px;background:#e0563b;color:#fff;font-weight:800;text-decoration:none;border-radius:10px;padding:6px 12px;box-shadow:0 3px 0 #a33a24}
+  .cta.big{display:block;text-align:center;font-size:20px;padding:10px;margin-top:10px}
+  #upsellOv ul{margin:8px 0 8px 18px;font-size:15px;line-height:1.5}
+  .chip.k{font-size:13px;background:#f3f5ff;border-color:#c9cfe6;border-width:2px}
+  .chip.k.on{background:#2f7de1;border-color:#2f7de1;color:#fff}
+  .chip.el{font-size:13px;border-width:2px;padding:2px 10px}
+  .chip.el small{font-size:11px}
+  .cpbox{background:#eef6ff;border:2px solid #2f7de1;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.4;margin:-4px 0 12px;max-height:170px;overflow:auto}
+  .cpbox b{color:#1d4f99}
+  .cpbox .src{display:block;margin-top:4px;font-size:11.5px;color:#667}
+  textarea{width:100%;font:inherit;font-size:15px;line-height:1.35;padding:8px 10px;border:3px solid #1d2340;border-radius:12px;margin:6px 0;outline:none;resize:vertical;min-height:220px}
+  pre.fmt{background:#f3f5ff;border-radius:10px;padding:8px 10px;font-size:13px;white-space:pre-wrap;font-family:inherit;margin:6px 0}
+  .row{display:flex;gap:8px}.row .btn{margin-top:0}
+  .btn.ghost{background:#fff;color:#1d2340;border:3px solid #1d2340;box-shadow:0 4px 0 #1d2340;font-size:18px}
+  .upl{display:block;text-align:center;font-size:18px;font-weight:800;color:#fff;background:#1fa463;border-radius:14px;padding:9px;cursor:pointer;box-shadow:0 5px 0 #13703f;margin:8px 0 10px}
+  .upl:active{transform:translateY(3px);box-shadow:0 2px 0 #13703f}
+  details.guide{background:#f3f5ff;border-radius:12px;padding:8px 12px;font-size:14px}
+  details.guide summary{font-weight:800;cursor:pointer}
+  details.guide p{font-size:14px;margin:6px 0}
+  #custMsg{font-weight:700;font-size:14px;min-height:20px}
+  #touch{position:fixed;bottom:14px;left:0;right:0;display:none;justify-content:space-between;padding:0 14px;z-index:5;pointer-events:none}
+  #touch button{pointer-events:auto;width:70px;height:70px;border-radius:50%;border:4px solid #fff;background:rgba(20,28,60,.55);color:#fff;font-size:30px;font-weight:800}
+  #touch .mid{display:flex;gap:12px}
+  @media (hover:none) and (pointer:coarse){#touch.on{display:flex}}
+  #pauseOv .panel{text-align:center}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="hud" id="hud" style="display:none">
+  <div class="left">
+    <div class="pill">⭐ Skor <b id="score">0</b></div>
+    <div class="pill">🪙 Koin <b id="coins">0</b></div>
+  </div>
+  <div class="right">
+    <div class="pill">📘 Soal <b id="qprog">0/15</b></div>
+    <div class="pill">✅ Benar <b id="correct">0</b></div>
+    <button class="pill" id="pauseBtn">⏸ Jeda</button>
+  </div>
+</div>
+
+<div id="qcard">
+  <div id="qnum">Soal 1</div>
+  <div id="qtext"></div>
+  <div id="qopts"></div>
+</div>
+
+<div id="fb"><h2></h2><p></p></div>
+
+<div id="touch">
+  <button id="tL">◀</button>
+  <div class="mid"><button id="tJ">▲</button></div>
+  <button id="tR">▶</button>
+</div>
+
+<div class="overlay" id="startOv">
+  <div class="panel">
+    <div class="tag">Game Kuis 3D · SD – SMP – SMA – SMK · Sesuai CP 2025</div>
+    <h1>Aja<span>Run!</span></h1>
+    <div class="brand">by <b>Teman Ngajar</b></div>
+    <div class="demo-bar">🎁 <b>Versi Demo</b> — bisa dimainkan: <b>Matematika</b> semua kelas &amp; <b>Projek IPAS</b> SMK. Mapel bertanda 🔒 ada di versi lengkap.<br><a href="https://lynk.id/hikmanurulizza" target="_blank" rel="noopener">⭐ Dapatkan versi lengkap</a></div>
+    <p>Berlari, kumpulkan koin, hindari rintangan, dan lewati <b>gerbang jawaban yang benar</b>.</p>
+    <label>1. Pilih jenjang</label>
+    <div class="chips" id="jenjangChips"></div>
+    <label>2. Pilih kelas</label>
+    <div class="chips" id="kelasChips"></div>
+    <label>3. Pilih mata pelajaran</label>
+    <div class="chips kat" id="katChips"></div>
+    <div class="chips" id="mapelChips"></div>
+    <p class="small" id="setInfo"></p>
+    <label>4. Pilih materi (elemen CP)</label>
+    <div class="chips" id="elChips"></div>
+    <div class="cpbox" id="cpBox"></div>
+    <label>5. Pilih tema dunia</label>
+    <div class="chips" id="temaChips"></div>
+    <p class="small" id="temaInfo"></p>
+    <div class="ctl">
+      <b>◀ ▶ / A D</b><span>Pindah jalur A (kiri) – B (tengah) – C (kanan)</span>
+      <b>▲ / Spasi</b><span>Lompat melewati peti kayu</span>
+      <b>Di HP</b><span>Geser layar, atau pakai tombol di bawah</span>
+    </div>
+    <label for="nama">6. Nama</label>
+    <input id="nama" maxlength="40" placeholder="cth. Rina (absen 21)" autocomplete="off">
+    <button class="btn" id="startBtn">▶ Mulai Lari</button>
+  </div>
+</div>
+
+<div class="overlay hide" id="editOv">
+  <div class="panel">
+    <div class="tag">Untuk Guru</div>
+    <h1 style="font-size:32px">Soal buatan guru</h1>
+    <label class="upl" for="custFile">📂 Upload soal dari Excel / Word / PDF</label>
+    <input type="file" id="custFile" accept=".xlsx,.xls,.csv,.ods,.docx,.pdf,.txt" hidden>
+    <details class="guide"><summary>Format file yang dikenali</summary>
+      <p><b>Excel / CSV</b> — baris pertama judul kolom, salah satu dari:<br>
+      • <i>Pertanyaan | Jawaban Benar | Salah 1 | Salah 2 | Penjelasan</i><br>
+      • <i>Pertanyaan | A | B | C | D | Kunci</i> (kunci diisi huruf, mis. B)</p>
+      <p><b>Word (.docx) / PDF</b> — soal pilihan ganda biasa:</p>
+      <pre class="fmt">1. Planet terbesar di tata surya adalah ...
+A. Bumi
+B. Jupiter
+C. Mars
+D. Saturnus
+Kunci: B</pre>
+      <p>Kunci boleh juga ditulis sebagai daftar di akhir dokumen (judul <i>Kunci Jawaban</i>, lalu 1. B, 2. C, ...), atau beri tanda * di depan jawaban benar. Soal dengan 4–5 pilihan otomatis dijadikan 3 jalur: jawaban benar + 2 pengecoh acak. PDF hasil scan (gambar) tidak bisa dibaca.</p>
+    </details>
+    <p style="font-size:14px;margin-top:10px">Atau tulis langsung: pertanyaan, lalu 3 pilihan jawaban di baris berikutnya. Beri tanda <b>*</b> di depan jawaban yang benar. Baris yang diawali <b>i:</b> (opsional) adalah penjelasan. Pisahkan tiap soal dengan <b>baris kosong</b>.</p>
+    <pre class="fmt">Ibu kota Provinsi Jawa Barat adalah ...
+*Bandung
+Semarang
+Surabaya
+i: Bandung adalah ibu kota Jawa Barat.
+
+5 × 6 = ...
+25
+*30
+36</pre>
+    <textarea id="custText" placeholder="Tempel atau ketik soal di sini..."></textarea>
+    <p id="custMsg"></p>
+    <p class="small">Soal disimpan di browser perangkat ini saja, cocok untuk dimainkan bersama di laptop/proyektor kelas.</p>
+    <div class="row"><button class="btn ghost" id="custBack">← Kembali</button><button class="btn" id="custSave">Simpan soal</button></div>
+  </div>
+</div>
+
+<div class="overlay hide" id="upsellOv">
+  <div class="panel">
+    <div class="tag">Versi Lengkap</div>
+    <h1 style="font-size:30px">🔒 <span id="upsellJudul">Mapel ini</span></h1>
+    <p>tersedia di <b>AjaRun versi lengkap</b>:</p>
+    <ul>
+      <li>55 mata pelajaran, SD kelas 1 sampai SMA/SMK kelas 12</li>
+      <li>2.800+ soal sesuai CP Kepka BSKAP 046/H/KR/2025, per elemen</li>
+      <li>Agama, Seni & PJOK, mapel pilihan SMA, Prakarya, Bahasa asing</li>
+      <li>Upload soal sendiri dari Excel, Word, atau PDF</li>
+      <li>Rekap capaian per elemen CP di layar hasil</li>
+    </ul>
+    <a class="cta big" href="https://lynk.id/hikmanurulizza" target="_blank" rel="noopener">⭐ Dapatkan di Lynk.id</a>
+    <p class="small" style="text-align:center;margin-top:8px">lynk.id/hikmanurulizza</p>
+    <button class="btn ghost" id="upsellBack" style="margin-top:6px">← Kembali ke demo</button>
+  </div>
+</div>
+
+<div class="overlay hide" id="pauseOv">
+  <div class="panel">
+    <h1>Jeda</h1>
+    <p>Tarik napas dulu 😄</p>
+    <button class="btn" id="resumeBtn">▶ Lanjut</button>
+  </div>
+</div>
+
+<div class="overlay hide" id="endOv">
+  <div class="panel">
+    <div class="tag">Hasil Belajar</div>
+    <h1 id="endTitle">Selesai!</h1>
+    <div class="stars" id="stars"></div>
+    <p id="endName" style="text-align:center;font-weight:700;font-size:18px"></p>
+    <div class="res">
+      <div><b id="rBenar">0</b><span>Jawaban benar</span></div>
+      <div><b id="rSkor">0</b><span>Skor</span></div>
+      <div><b id="rKoin">0</b><span>Koin</span></div>
+    </div>
+    <div class="rekap" id="rekap"></div>
+    <div class="rev" id="rev"></div>
+    <p class="meta" id="meta"></p>
+    <p style="font-size:14px;text-align:center">📸 Screenshot layar ini dan kirim ke guru.</p>
+    <button class="btn alt" id="againBtn">↻ Main Lagi</button>
+    <div class="demo-bar" style="text-align:center">Mau semua mapel SD–SMA/SMK, 2.800+ soal sesuai CP 2025, dan upload soal sendiri?<a class="cta big" href="https://lynk.id/hikmanurulizza" target="_blank" rel="noopener">⭐ Dapatkan AjaRun versi lengkap</a></div>
+    <div class="brand end">🏃 <b>AjaRun</b> by <b>Teman Ngajar</b></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* AjaRun by Teman Ngajar — VERSI DEMO */
+const DEMO=true;
+const CP_SUMBER="Kepka BSKAP No. 046/H/KR/2025";
+const CP_TEKS={"A":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Menunjukkan pemahaman dan memiliki intuisi bilangan (number sense) pada bilangan cacah sampai 100; membaca, menulis, menentukan nilai tempat, membandingkan, mengurutkan, serta melakukan komposisi (menyusun) dan dekomposisi (mengurai) bilangan; melakukan operasi penjumlahan dan pengurangan menggunakan benda-benda konkret yang banyaknya sampai 20; dan menunjukkan pemahaman pecahan sebagai bagian dari keseluruhan melalui konteks membagi sebuah benda atau kumpulan benda sama banyak (pecahan yang diperkenalkan adalah setengah dan seperempat)."},"Aljabar":{"el":"Aljabar","cp":"Menunjukan pemahaman makna simbol matematika \"=\" dalam suatu kalimat matematika yang terkait dengan penjumlahan dan pengurangan bilangan cacah sampai 20 menggunakan gambar. Murid dapat mengenali, meniru, dan melanjutkan pola bukan bilangan (misalnya, gambar, warna, bunyi/suara)."},"Pengukuran":{"el":"Pengukuran","cp":"Membandingkan panjang dan berat benda secara langsung, dan membandingkan durasi waktu; mengukur dan mengestimasi panjang dan berat benda menggunakan satuan tidak baku."},"Geometri":{"el":"Geometri","cp":"Mengenal berbagai bangun datar (segitiga, segiempat, segi banyak, lingkaran) dan bangun ruang (balok, kubus, kerucut, dan bola); melakukan komposisi (penyusunan) dan dekomposisi (penguraian) suatu bangun datar (segitiga, segiempat, dan segi banyak); dan menentukan posisi benda terhadap benda lain (kanan, kiri, depan belakang, bawah, atas)."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Mengurutkan, menyortir, mengelompokkan, membandingkan, dan menyajikan data dari banyak benda dengan menggunakan turus dan piktogram paling banyak 4 kategori."}}},"B":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Memiliki pemahaman dan intuisi bilangan (number sense) pada bilangan cacah sampai"},"Aljabar":{"el":"Aljabar","cp":"Menemukan nilai yang tidak diketahui dalam kalimat matematika yang melibatkan penjumlahan dan pengurangan pada bilangan cacah sampai 100, dengan menggunakan sifat-sifat bilangan dan operasinya. Murid dapat mengidentifikasi, meniru, dan mengembangkan pola gambar atau objek sederhana dan pola bilangan membesar dan mengecil yang dapat melibatkan penjumlahan dan pengurangan pada bilangan cacah sampai"},"Pengukuran":{"el":"Pengukuran","cp":"Mengukur panjang dan berat benda menggunakan satuan baku; menentukan hubungan antar-satuan baku panjang (cm, m) dan antar-satuan berat (g, kg); serta mengukur dan mengestimasi luas dan volume menggunakan satuan tidak baku dan satuan baku berupa bilangan cacah."},"Geometri":{"el":"Geometri","cp":"Mendeskripsikan ciri berbagai bentuk bangun datar (segiempat, segitiga, segi banyak); menyusun (komposisi) dan mengurai (dekomposisi) berbagai bangun datar dengan lebih dari satu cara jika memungkinkan."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Mengurutkan, membandingkan, menyajikan, menganalisis dan menginterpretasi data dalam bentuk tabel, diagram gambar, piktogram, dan diagram batang (skala satu satuan)."}}},"C":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Menunjukkan pemahaman dan intuisi bilangan (number sense) pada bilangan cacah sampai"},"Aljabar":{"el":"Aljabar","cp":"Menemukan nilai yang belum diketahui dalam kalimat matematika yang melibatkan penjumlahan, pengurangan, perkalian, dan pembagian pada bilangan cacah sampai 1000 dengan menggunakan sifat-sifat bilangan dan operasinya. Murid dapat mengidentifikasi, meniru, dan mengembangkan pola bilangan membesar dan mengecil yang melibatkan perkalian dan pembagian; bernalar secara proporsional untuk menyelesaikan masalah sehari-hari dengan rasio satuan; menggunakan operasi perkalian dan pembagian dalam menyelesaikan masalah sehari- hari yang terkait dengan proporsi."},"Pengukuran":{"el":"Pengukuran","cp":"Menentukan keliling dan luas berbagai bentuk bangun datar (segitiga, segiempat, dan segi banyak) serta gabungannya; menghitung durasi waktu dan mengukur besar sudut pada bangun datar atau yang dibentuk dari dua garis berpotongan."},"Geometri":{"el":"Geometri","cp":"Mengkonstruksi dan mengurai bangun ruang (kubus, balok, dan gabungannya) dan mengenali visualisasi spasial (bagian depan, atas, dan samping); membandingkan karakteristik antar bangun datar dan antar bangun ruang; serta menentukan lokasi pada peta yang menggunakan sistem berpetak."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Mengurutkan, membandingkan, menyajikan, dan menganalisis data banyak benda dan data hasil pengukuran dalam bentuk gambar, piktogram, diagram batang, dan tabel frekuensi untuk mendapatkan informasi; menentukan kejadian dengan kemungkinan yang lebih besar atau lebih kecil dalam suatu percobaan acak."}}},"D":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Membaca, menulis, dan membandingkan bilangan bulat, bilangan rasional, bilangan desimal, bilangan berpangkat bulat dan akar, bilangan dalam notasi ilmiah; menerapkan operasi aritmatika pada bilangan real, dan memberikan estimasi/perkiraan dalam menyelesaikan masalah (termasuk berkaitan dengan literasi finansial). Murid dapat menggunakan rasio (skala, proporsi, dan laju perubahan) dalam penyelesaian masalah."},"Aljabar":{"el":"Aljabar","cp":"Mengenali, memprediksi dan menggeneralisasi pola dalam bentuk susunan benda dan bilangan; Menyatakan suatu situasi ke dalam bentuk aljabar; menggunakan sifat-sifat operasi (komutatif, asosiatif, dan distributif) untuk menghasilkan bentuk aljabar yang ekuivalen. Murid dapat memahami relasi dan fungsi (domain, kodomain, range) serta menyajikannya dalam bentuk diagram panah, tabel, himpunan pasangan berurutan, dan grafik; membedakan beberapa fungsi non linear dari fungsi linear secara grafik; menyelesaikan persamaan dan pertidaksamaan linear satu variabel; menyajikan, menganalisis, dan menyelesaikan masalah dengan menggunakan relasi, fungsi dan persamaan linear; serta menyelesaikan sistem persaman linear dua variabel melalui beberapa cara untuk penyelesaian masalah."},"Pengukuran":{"el":"Pengukuran","cp":"Menentukan keliling, luas, panjang busur, sudut dan luas juring lingkaran, serta menyelesaikan masalah yang terkait; menjelaskan cara untuk menentukan luas permukaan dan volume bangun ruang (prisma, tabung, bola, limas dan kerucut) dan menyelesaikan masalah yang terkait; dan menjelaskan pengaruh perubahan secara proporsional dari bangun datar dan bangun ruang terhadap ukuran panjang, besar sudut, luas, dan/atau volume."},"Geometri":{"el":"Geometri","cp":"Membuat jaring-jaring bangun ruang (prisma, tabung, limas dan kerucut) dan membuat bangun ruang dari jaring-jaringnya. Murid dapat menggunakan hubungan antar-sudut yang terbentuk oleh dua garis yang berpotongan, dan oleh dua garis sejajar yang dipotong sebuah garis transversal untuk menyelesaikan masalah (termasuk menentukan jumlah besar sudut dalam sebuah segitiga, menentukan besar sudut yang belum diketahui pada sebuah segitiga); menjelaskan sifat-sifat kekongruenan dan kesebangunan pada segitiga dan segiempat, dan menggunakannya untuk menyelesaikan masalah; menunjukkan kebenaran teorema Pythagoras dan menggunakannya dalam menyelesaikan masalah (termasuk pengenalan bilangan irasional dan jarak antara dua titik pada bidang koordinat Kartesius). Murid dapat melakukan transformasi tunggal (refleksi, translasi, rotasi, dan dilatasi) titik, garis, dan bangun datar pada bidang koordinat Kartesius dan menggunakannya untuk menyelesaikan masalah."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Merumuskan pertanyaan, mengumpulkan, menyajikan, dan menganalisis data untuk menjawab pertanyaan dari situasi atau masalah; menggunakan diagram batang dan diagram lingkaran untuk menyajikan dan menginterpretasi data; mengambil sampel yang mewakili suatu populasi untuk mendapatkan data yang terkait dengan diri dan lingkungan mereka; menentukan dan menafsirkan rerata (mean), median, modus, dan jangkauan (range) dari data tersebut untuk menyelesaikan masalah (termasuk membandingkan suatu data terhadap kelompoknya, membandingkan dua kelompok data, memprediksi, membuat keputusan); menyelidiki kemungkinan adanya perubahan pengukuran pusat tersebut akibat perubahan data. Murid dapat menjelaskan dan menggunakan pengertian peluang dan frekuensi relatif untuk menentukan frekuensi harapan satu kejadian pada suatu percobaan sederhana (semua hasil percobaan dapat muncul secara merata)."}}},"E":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Menggeneralisasi sifat-sifat bilangan berpangkat (termasuk bilangan pangkat pecahan), dan menggunakannya untuk menyelesaikan masalah."},"Aljabar dan Fungsi":{"el":"Aljabar dan Fungsi","cp":"Menyelesaikan masalah yang berkaitan dengan sistem pertidaksamaan linear dua variabel; menyelesaikan masalah yang berkaitan dengan persamaan dan fungsi kuadrat (termasuk akar imajiner), serta persamaan eksponensial (berbasis/ bilangan pokok sama) dan fungsi eksponensial."},"Geometri":{"el":"Geometri","cp":"Mengaplikasikan perbandingan trigonometri (sinus, cosinus, tangen) dari sudut lancip."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Merepresentasikan dan menginterpretasi data dengan cara menentukan jangkauan kuartil dan interkuartil; membuat dan menginterpretasi diagram box plot dan menggunakannya untuk membandingkan himpunan data; menentukan dan menggunakan dari box plot, histogram dan dot plot sesuai dengan natur (karakteristik) data dan kebutuhan; menggunakan diagram pencar untuk menyelidiki dan menjelaskan hubungan antara dua variabel numerik/kuantitatif (termasuk salah satunya variabel bebas berupa waktu); serta mengevaluasi laporan statistika di media berdasarkan tampilan, statistika dan representasi data, termasuk yang disajikan dalam bentuk matriks."}},"Projek IPAS":{"Makhluk Hidup dan Lingkungannya":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Makhluk Hidup dan Lingkungannya","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Makhluk Hidup dan Lingkungannya: Meliputi keterkaitan antara makhluk hidup yang terdiri dari manusia, tumbuhan dan hewan yang saling bergantung kepada lingkungannya baik berupa tanah, air, maupun energi; keragaman hayati, keseimbangan alam beserta dampaknya seperti perubahan iklim, cuaca, dan musim; serta materi kebumian seperti lapisan batuan (litosfer), lapisan perairan (hidrosfer), dan lapisan udara (atmosfer)."},"Zat dan Perubahannya":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Zat dan Perubahannya","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Zat dan Perubahannya: Meliputi jenis dan sifat zat yang dibedakan secara kimia dan fisika, ciri-ciri dari perubahan zat secara fisika, kimia, dan biologi, serta unsur senyawa campuran; dalam kehidupan sehari-hari dapat ditinjau secara perspektif ekonomi kreatif dan sosial."},"Energi dan Perubahannya":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Energi dan Perubahannya","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Energi dan Perubahannya: Meliputi dasar-dasar besaran dan pengukuran serta energi dan perubahannya, mencakup perubahan energi kimia, listrik, panas dan mekanik serta energi terbarukan."},"Keruangan dan Konektivitas":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Keruangan dan Konektivitas","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Keruangan dan Konektivitas: Meliputi pemahaman terhadap kondisi sosial dan lingkungan alam dalam konteks lokal, regional, nasional, hingga global, seperti kependudukan, mitigasi dan adaptasi bencana, pengembangan wilayah, tata ruang, dan revolusi industri, termasuk potensi sumber daya alam dan pemetaan bumi sebagai ruang hidup."},"Interaksi dan Dinamika Sosial":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Interaksi dan Dinamika Sosial","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Interaksi dan Dinamika Sosial: Meliputi pembentukan identitas diri, merefleksikan keberadaan diri di tengah keberagaman, interaksi dan institusi sosial, peluang dan tantangannya, dinamika/problematika sosial, serta faktor penyebab dan solusinya untuk mewujudkan pembangunan berkelanjutan."},"Perilaku Ekonomi dan Kesejahteraan":{"el":"Menjelaskan Fenomena secara Ilmiah · Aspek Perilaku Ekonomi dan Kesejahteraan","cp":"Menjelaskan pengetahuan ilmiah; membuat prediksi sederhana disertai dengan pembuktian fenomena-fenomena yang terjadi di lingkungan sekitarnya dilihat dari berbagai aspek seperti makhluk hidup dan lingkungannya, zat dan perubahannya, energi dan perubahannya, keruangan dan konektivitas antarruang dan antarwaktu, interaksi, komunikasi, sosialisasi, institusi sosial dan dinamika sosial, serta perilaku ekonomi dan kesejahteraan dan mengaitkan fenomena-fenomena tersebut dengan keterampilan teknis pada bidang keahliannya. Aspek Perilaku Ekonomi dan Kesejahteraan: Meliputi peran diri, masyarakat serta negara dalam memenuhi kebutuhan bersama, faktor-faktor penyebab kelangkaan, permintaan, penawaran, harga pasar, bentuk-bentuk pasar, serta inflasi, peran lembaga keuangan, nilai, serta fungsi uang konvensional dan digital, pengelolaan, sumber-sumber pendapatan dan pengeluaran keuangan keluarga, perusahaan serta negara, dan hak serta kewajiban dalam jasa keuangan."}}},"F":{"Matematika":{"Bilangan":{"el":"Bilangan","cp":"Menjelaskan barisan dan deret (aritmetika dan geometri), menerapkannya pada beragam masalah terutama masalah bunga tunggal dan majemuk, memodelkan pinjaman dan investasi dengan bunga majemuk dan anuitas, serta menyelidiki (secara numerik atau grafis) pengaruh masing-masing parameter (suku bunga, periode pembayaran) dalam model tersebut."},"Aljabar dan Fungsi":{"el":"Aljabar dan Fungsi","cp":"Menentukan fungsi invers, komposisi fungsi, dan transformasi fungsi untuk memodelkan situasi dunia nyata menggunakan fungsi yang sesuai (linear, kuadrat, eksponensial)."},"Geometri":{"el":"Geometri","cp":"Menerapkan, mengidentifikasi dan menjelaskan hubungan antara unsur-unsur lingkaran untuk menyelesaikan masalah."},"Analisis Data dan Peluang":{"el":"Analisis Data dan Peluang","cp":"Melakukan proses penyelidikan statistika untuk mengidentifikasi dan menjelaskan asosiasi antara dua variabel kategorikal (kualitatif) dan antara dua variabel numerikal (kuantitatif); memperkirakan model linear terbaik (best fit linear) pada data numerikal (kuantitatif); membedakan hubungan asosiasi dan sebab-akibat; menjelaskan peluang dan menentukan frekuensi harapan dari kejadian majemuk; menyelidiki konsep dari kejadian saling bebas dan saling lepas, dan menentukan peluangnya; serta memahami konsep peluang bersyarat dan kejadian yang saling bebas menggunakan konsep permutasi dan kombinasi."}}}};
+const STRUKTUR={"SD":{"1":{"fase":"A","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"2":{"fase":"A","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"3":{"fase":"B","mapel":{"Matematika":"Matematika","IPAS":"IPAS","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Bahasa Inggris":"Bahasa Inggris","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"4":{"fase":"B","mapel":{"Matematika":"Matematika","IPAS":"IPAS","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Bahasa Inggris":"Bahasa Inggris","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"5":{"fase":"C","mapel":{"Matematika":"Matematika","IPAS":"IPAS","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Bahasa Inggris":"Bahasa Inggris","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"6":{"fase":"C","mapel":{"Matematika":"Matematika","IPAS":"IPAS","Bahasa Indonesia":"Bahasa Indonesia","Pendidikan Pancasila":"Pendidikan Pancasila","Bahasa Inggris":"Bahasa Inggris","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}}},"SMP":{"7":{"fase":"D","mapel":{"Matematika":"Matematika","IPA":"IPA","IPS":"IPS","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Prakarya Budi Daya":"Prakarya Budi Daya","Prakarya Kerajinan":"Prakarya Kerajinan","Prakarya Pengolahan":"Prakarya Pengolahan","Prakarya Rekayasa":"Prakarya Rekayasa"}},"8":{"fase":"D","mapel":{"Matematika":"Matematika","IPA":"IPA","IPS":"IPS","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Prakarya Budi Daya":"Prakarya Budi Daya","Prakarya Kerajinan":"Prakarya Kerajinan","Prakarya Pengolahan":"Prakarya Pengolahan","Prakarya Rekayasa":"Prakarya Rekayasa"}},"9":{"fase":"D","mapel":{"Matematika":"Matematika","IPA":"IPA","IPS":"IPS","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Prakarya Budi Daya":"Prakarya Budi Daya","Prakarya Kerajinan":"Prakarya Kerajinan","Prakarya Pengolahan":"Prakarya Pengolahan","Prakarya Rekayasa":"Prakarya Rekayasa"}}},"SMA":{"10":{"fase":"E","mapel":{"Matematika":"Matematika","IPA":"IPA","IPS":"IPS","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Prakarya Budi Daya":"Prakarya Budi Daya","Prakarya Kerajinan":"Prakarya Kerajinan","Prakarya Pengolahan":"Prakarya Pengolahan","Prakarya Rekayasa":"Prakarya Rekayasa"}},"11":{"fase":"F","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Sejarah":"Sejarah","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Fisika":"Fisika","Kimia":"Kimia","Biologi":"Biologi","Geografi":"Geografi","Ekonomi":"Ekonomi","Sosiologi":"Sosiologi","Antropologi":"Antropologi","PKWU Budi Daya":"PKWU Budi Daya","PKWU Kerajinan":"PKWU Kerajinan","PKWU Pengolahan":"PKWU Pengolahan","PKWU Rekayasa":"PKWU Rekayasa","Bahasa Arab":"Bahasa Arab","Bahasa Jepang":"Bahasa Jepang","Bahasa Jerman":"Bahasa Jerman","Bahasa Korea":"Bahasa Korea","Bahasa Mandarin":"Bahasa Mandarin","Bahasa Prancis":"Bahasa Prancis"}},"12":{"fase":"F","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Sejarah":"Sejarah","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Fisika":"Fisika","Kimia":"Kimia","Biologi":"Biologi","Geografi":"Geografi","Ekonomi":"Ekonomi","Sosiologi":"Sosiologi","Antropologi":"Antropologi","PKWU Budi Daya":"PKWU Budi Daya","PKWU Kerajinan":"PKWU Kerajinan","PKWU Pengolahan":"PKWU Pengolahan","PKWU Rekayasa":"PKWU Rekayasa","Bahasa Arab":"Bahasa Arab","Bahasa Jepang":"Bahasa Jepang","Bahasa Jerman":"Bahasa Jerman","Bahasa Korea":"Bahasa Korea","Bahasa Mandarin":"Bahasa Mandarin","Bahasa Prancis":"Bahasa Prancis"}}},"SMK":{"10":{"fase":"E","mapel":{"Projek IPAS":"Projek IPAS","Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Sejarah":"Sejarah (SMK)","Informatika":"Informatika","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater"}},"11":{"fase":"F","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Sejarah":"Sejarah (SMK)","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Bahasa Mandarin":"Bahasa Mandarin"}},"12":{"fase":"F","mapel":{"Matematika":"Matematika","Bahasa Indonesia":"Bahasa Indonesia","Bahasa Inggris":"Bahasa Inggris","Pendidikan Pancasila":"Pendidikan Pancasila","Sejarah":"Sejarah (SMK)","Koding & KA":"Koding & KA","Agama Islam":"Agama Islam","Agama Kristen":"Agama Kristen","Agama Katolik":"Agama Katolik","Agama Hindu":"Agama Hindu","Agama Buddha":"Agama Buddha","Agama Khonghucu":"Agama Khonghucu","PJOK":"PJOK","Seni Musik":"Seni Musik","Seni Rupa":"Seni Rupa","Seni Tari":"Seni Tari","Seni Teater":"Seni Teater","Bahasa Mandarin":"Bahasa Mandarin"}}}};
+const POOL={"A":{"Matematika":[["Bilangan setelah 49 adalah ...",["50","48","40"],"","Bilangan"],["Angka 7 pada bilangan 72 menempati nilai tempat ...",["Puluhan","Satuan","Ratusan"],"","Bilangan"],["Bilangan terbesar adalah ...",["91","19","89"],"","Bilangan"],["8 + 7 = ...",["15","14","16"],"","Bilangan"],["17 − 9 = ...",["8","7","9"],"","Bilangan"],["45 = 40 + ...",["5","4","45"],"45 terdiri dari 4 puluhan dan 5 satuan.","Bilangan"],["Sebuah roti dibagi 2 sama besar. Setiap bagian disebut ...",["Setengah","Seperempat","Sepertiga"],"","Bilangan"],["Pizza dibagi 4 sama besar. Satu bagian disebut ...",["Seperempat","Setengah","Sepertiga"],"","Bilangan"],["5 + ... = 12",["7","6","17"],"","Aljabar"],["Pola: merah, biru, merah, biru, merah, ... Berikutnya adalah ...",["Biru","Merah","Hijau"],"","Aljabar"],["Pola: ●, ▲, ●, ▲, ●, ... Berikutnya adalah ...",["▲","●","■"],"","Aljabar"],["3 + 4 = ... + 2",["5","7","9"],"Kedua ruas harus bernilai sama: 7 = 5 + 2.","Aljabar"],["Pola: 🍎, 🍌, 🍌, 🍎, 🍌, 🍌, 🍎, ... Berikutnya adalah ...",["🍌","🍎","🍇"],"","Aljabar"],["Pensil lebih pendek dari penggaris. Benda yang lebih panjang adalah ...",["Penggaris","Pensil","Sama panjang"],"","Pengukuran"],["Mengukur panjang meja dengan jengkal memakai satuan ...",["Tidak baku","Baku","Meter"],"","Pengukuran"],["Kegiatan yang paling lama waktunya adalah ...",["Tidur malam","Menggosok gigi","Mencuci tangan"],"","Pengukuran"],["Buku tulis lebih berat dari pensil. Benda yang lebih ringan adalah ...",["Pensil","Buku tulis","Sama berat"],"","Pengukuran"],["Panjang meja 5 jengkal, panjang kursi 3 jengkal. Yang lebih panjang adalah ...",["Meja","Kursi","Sama panjang"],"","Pengukuran"],["Bola sepak berbentuk ...",["Bola","Kubus","Kerucut"],"","Geometri"],["Topi ulang tahun berbentuk ...",["Kerucut","Balok","Kubus"],"","Geometri"],["Bangun datar yang memiliki 3 sisi adalah ...",["Segitiga","Lingkaran","Persegi"],"","Geometri"],["Dadu berbentuk ...",["Kubus","Bola","Kerucut"],"","Geometri"],["Rina duduk di sebelah kanan Budi. Jadi, Budi duduk di sebelah ... Rina.",["Kiri","Kanan","Belakang"],"","Geometri"],["Turus |||| menunjukkan banyak ...",["4","5","3"],"","Analisis Data dan Peluang"],["Piktogram: Apel 🍎🍎🍎, Jeruk 🍊🍊. Buah yang lebih banyak adalah ...",["Apel","Jeruk","Sama banyak"],"","Analisis Data dan Peluang"],["Turus |||| | menunjukkan banyak ...",["6","5","4"],"","Analisis Data dan Peluang"],["Piktogram hewan peliharaan: Kucing 🐱🐱🐱🐱, Ikan 🐟🐟. Selisihnya ...",["2","4","6"],"","Analisis Data dan Peluang"],["Mainan dikelompokkan menurut warna: 3 merah, 5 biru, 2 kuning. Kelompok terbanyak ...",["Biru","Merah","Kuning"],"","Analisis Data dan Peluang"]]},"B":{"Matematika":[["Angka 5 pada bilangan 4.582 menempati nilai tempat ...",["Ratusan","Ribuan","Puluhan"],"","Bilangan"],["Bilangan terkecil adalah ...",["3.104","3.401","3.410"],"","Bilangan"],["456 + 278 = ...",["734","724","634"],"","Bilangan"],["803 − 257 = ...",["546","556","646"],"","Bilangan"],["7 × 8 = ...",["56","54","63"],"","Bilangan"],["72 : 9 = ...",["8","7","9"],"","Bilangan"],["Kelipatan 4 adalah ...",["4, 8, 12, 16","4, 6, 8, 10","1, 2, 4"],"","Bilangan"],["Faktor dari 12 adalah ...",["1, 2, 3, 4, 6, 12","2, 4, 6, 8","12, 24, 36"],"","Bilangan"],["Pecahan terbesar adalah ...",["1/2","1/3","1/5"],"Jika pembilangnya 1, pecahan dengan penyebut terkecil adalah yang terbesar.","Bilangan"],["Pecahan yang senilai dengan 1/2 adalah ...",["2/4","2/3","1/4"],"","Bilangan"],["1/4 jika ditulis dalam desimal adalah ...",["0,25","0,4","0,14"],"","Bilangan"],["1/2 sama dengan ...",["50%","25%","12%"],"","Bilangan"],["35 + ... = 80",["45","55","115"],"","Aljabar"],["Pola bilangan: 5, 10, 15, 20, ... Berikutnya adalah ...",["25","30","22"],"","Aljabar"],["Pola bilangan: 90, 80, 70, ... Berikutnya adalah ...",["60","50","65"],"","Aljabar"],["... − 25 = 40",["65","15","55"],"","Aljabar"],["Pola bilangan: 2, 5, 8, 11, ... Berikutnya adalah ...",["14","13","15"],"","Aljabar"],["2 m = ... cm",["200","20","2.000"],"","Pengukuran"],["3 kg = ... g",["3.000","300","30"],"","Pengukuran"],["Persegi panjang tersusun dari 5 petak × 3 petak. Luasnya ... petak",["15","8","16"],"","Pengukuran"],["150 cm = ... m ... cm",["1 m 50 cm","15 m","1 m 5 cm"],"","Pengukuran"],["2.500 g = ... kg",["2,5","25","250"],"","Pengukuran"],["Bangun datar dengan 4 sisi sama panjang dan 4 sudut siku-siku adalah ...",["Persegi","Belah ketupat","Jajargenjang"],"","Geometri"],["Segitiga yang ketiga sisinya sama panjang disebut segitiga ...",["Sama sisi","Sama kaki","Siku-siku"],"","Geometri"],["Bangun datar yang memiliki 5 sisi disebut ...",["Segi lima","Segi enam","Segitiga"],"","Geometri"],["Persegi panjang memiliki ... sudut siku-siku",["4","2","3"],"","Geometri"],["Dua segitiga siku-siku yang sama dapat disusun menjadi ...",["Persegi panjang","Lingkaran","Segi lima"],"","Geometri"],["Diagram batang buku dipinjam: Senin 5, Selasa 8, Rabu 3. Paling banyak pada hari ...",["Selasa","Senin","Rabu"],"","Analisis Data dan Peluang"],["Kelas 3A ada 28 murid, kelas 3B ada 25 murid. Selisihnya ... murid",["3","53","5"],"","Analisis Data dan Peluang"],["Tabel buah kesukaan: Apel 6, Jeruk 9, Mangga 4. Buah yang paling disukai ...",["Jeruk","Apel","Mangga"],"","Analisis Data dan Peluang"],["Diagram batang: kelas 3A 12 piala, kelas 3B 8 piala. Jumlah piala keduanya ...",["20","4","12"],"","Analisis Data dan Peluang"],["Data paling tepat disajikan dalam diagram batang adalah ...",["Jumlah murid tiap kelas","Puisi tentang ibu","Gambar pemandangan"],"","Analisis Data dan Peluang"]]},"C":{"Matematika":[["Angka 4 pada bilangan 345.678 menempati nilai tempat ...",["Puluh ribuan","Ribuan","Ratus ribuan"],"","Bilangan"],["12.500 × 4 = ...",["50.000","48.000","50.400"],"","Bilangan"],["84.000 : 7 = ...",["12.000","1.200","12.700"],"","Bilangan"],["KPK dari 6 dan 8 adalah ...",["24","48","2"],"","Bilangan"],["FPB dari 18 dan 24 adalah ...",["6","3","72"],"","Bilangan"],["Lampu A menyala tiap 4 menit, lampu B tiap 6 menit. Keduanya menyala bersama lagi setelah ...",["12 menit","24 menit","10 menit"],"Gunakan KPK dari 4 dan 6, yaitu 12.","Bilangan"],["1½ + 2¼ = ...",["3¾","3 2/6","4¼"],"","Bilangan"],["2/3 × 6 = ...",["4","12","2/18"],"","Bilangan"],["3/4 : 3 = ...",["1/4","9/4","4/9"],"","Bilangan"],["Bilangan desimal terbesar adalah ...",["2,8","2,3","2,5"],"","Bilangan"],["Beli 3 buku @Rp4.500 dan membayar Rp20.000. Kembaliannya ...",["Rp6.500","Rp15.500","Rp7.500"],"","Bilangan"],["... × 8 = 96",["12","11","88"],"","Aljabar"],["Pola bilangan: 3, 6, 12, 24, ... Berikutnya adalah ...",["48","30","36"],"","Aljabar"],["2 kg beras harganya Rp26.000. Harga 5 kg beras adalah ...",["Rp65.000","Rp52.000","Rp130.000"],"","Aljabar"],["144 : ... = 12",["12","11","132"],"","Aljabar"],["Perbandingan kelereng Andi dan Budi 2 : 3. Jika kelereng Andi 10, kelereng Budi ...",["15","12","20"],"","Aljabar"],["Luas segitiga dengan alas 10 cm dan tinggi 6 cm adalah ...",["30 cm²","60 cm²","16 cm²"],"","Pengukuran"],["Keliling persegi panjang 12 cm × 5 cm adalah ...",["34 cm","60 cm","17 cm"],"","Pengukuran"],["Film dimulai pukul 13.15 dan selesai pukul 15.00. Lama film adalah ...",["1 jam 45 menit","2 jam 15 menit","1 jam 15 menit"],"","Pengukuran"],["Sudut lancip besarnya ...",["Kurang dari 90°","Tepat 90°","Lebih dari 90°"],"","Pengukuran"],["Sudut yang besarnya lebih dari 90° dan kurang dari 180° disebut sudut ...",["Tumpul","Lancip","Siku-siku"],"","Pengukuran"],["Kubus memiliki ... sisi",["6","8","12"],"","Geometri"],["Balok memiliki ... rusuk",["12","8","6"],"","Geometri"],["Pada peta berpetak, letak 'C2' berarti ...",["Kolom C, baris 2","Kolom 2, baris C","Petak ke-32"],"","Geometri"],["Bangun ruang yang semua sisinya berbentuk persegi adalah ...",["Kubus","Balok","Prisma segitiga"],"","Geometri"],["Tampak atas sebuah tabung berbentuk ...",["Lingkaran","Persegi","Segitiga"],"","Geometri"],["Data nilai: 7, 8, 8, 9, 8, 6. Frekuensi nilai 8 adalah ...",["3","2","8"],"","Analisis Data dan Peluang"],["Kantong berisi 5 kelereng merah dan 2 biru. Yang lebih mungkin terambil adalah ...",["Merah","Biru","Sama besar"],"","Analisis Data dan Peluang"],["Data tinggi badan paling tepat disajikan dalam ...",["Tabel frekuensi atau diagram batang","Puisi","Peta"],"","Analisis Data dan Peluang"],["Sebuah dadu dilempar. Kejadian yang lebih mungkin adalah muncul ...",["Angka kurang dari 5","Angka 6","Angka 7"],"","Analisis Data dan Peluang"],["Diagram batang: Senin 4, Selasa 7, Rabu 7, Kamis 2. Hari dengan nilai terkecil ...",["Kamis","Senin","Rabu"],"","Analisis Data dan Peluang"]]},"D":{"Matematika":[["−7 + 12 = ...",["5","−19","−5"],"","Bilangan"],["(−3) × (−6) = ...",["18","−18","−9"],"","Bilangan"],["2³ × 2⁴ = ...",["2⁷","2¹²","4⁷"],"","Bilangan"],["5⁰ = ...",["1","0","5"],"","Bilangan"],["3.400.000 dalam notasi ilmiah adalah ...",["3,4 × 10⁶","3,4 × 10⁵","3,4 × 10⁷"],"","Bilangan"],["Baju Rp150.000 didiskon 20%. Harga yang dibayar ...",["Rp120.000","Rp130.000","Rp30.000"],"","Bilangan"],["Skala peta 1 : 100.000. Jarak di peta 4 cm, jarak sebenarnya ...",["4 km","40 km","400 m"],"","Bilangan"],["Jika 3x − 5 = 10, maka x = ...",["5","15","3"],"","Aljabar"],["Bentuk lain dari 2(x + 3) adalah ...",["2x + 6","2x + 3","x + 6"],"","Aljabar"],["Jika f(x) = 3x − 1, maka f(2) = ...",["5","6","7"],"","Aljabar"],["Gradien garis y = 2x + 5 adalah ...",["2","5","−2"],"","Aljabar"],["Jika x + y = 7 dan x − y = 1, maka x = ...",["4","3","6"],"","Aljabar"],["Penyelesaian x + 3 > 5 adalah ...",["x > 2","x < 2","x > 8"],"","Aljabar"],["Luas lingkaran dengan r = 7 cm (π = 22/7) adalah ...",["154 cm²","44 cm²","49 cm²"],"","Pengukuran"],["Volume tabung dengan r = 7 cm dan t = 10 cm (π = 22/7) adalah ...",["1.540 cm³","154 cm³","440 cm³"],"","Pengukuran"],["Volume kubus dengan rusuk 5 cm adalah ...",["125 cm³","25 cm³","150 cm³"],"","Pengukuran"],["Keliling lingkaran dengan diameter 14 cm (π = 22/7) adalah ...",["44 cm","88 cm","154 cm"],"","Pengukuran"],["Volume kerucut dengan r = 7 cm dan t = 12 cm (π = 22/7) adalah ...",["616 cm³","1.848 cm³","308 cm³"],"","Pengukuran"],["Segitiga siku-siku dengan sisi 6 cm dan 8 cm. Sisi miringnya ...",["10 cm","14 cm","12 cm"],"√(6² + 8²) = √100 = 10.","Geometri"],["Jumlah besar sudut dalam segitiga adalah ...",["180°","90°","360°"],"","Geometri"],["Titik (3, 4) dicerminkan terhadap sumbu x menjadi ...",["(3, −4)","(−3, 4)","(4, 3)"],"","Geometri"],["Dua garis sejajar dipotong garis lain. Sudut dalam berseberangan besarnya ...",["Sama besar","Berjumlah 90°","Selalu 45°"],"","Geometri"],["Titik (1, 2) ditranslasi oleh (3, 4) menjadi ...",["(4, 6)","(3, 8)","(−2, −2)"],"","Geometri"],["Rata-rata dari 4, 6, 8, 10 adalah ...",["7","6","8"],"","Analisis Data dan Peluang"],["Median dari data 3, 7, 5, 9, 1 adalah ...",["5","7","3"],"","Analisis Data dan Peluang"],["Jangkauan dari data 2, 5, 9, 4 adalah ...",["7","9","5"],"","Analisis Data dan Peluang"],["Peluang muncul mata dadu genap adalah ...",["1/2","1/3","1/6"],"","Analisis Data dan Peluang"],["Dadu dilempar 60 kali. Frekuensi harapan muncul mata 6 adalah ...",["10","6","30"],"","Analisis Data dan Peluang"]]},"E":{"Matematika":[["8^(2/3) = ...",["4","16","6"],"8^(1/3) = 2, lalu 2² = 4.","Bilangan"],["27^(1/3) = ...",["3","9","1/3"],"","Bilangan"],["(a²)³ = ...",["a⁶","a⁵","a⁸"],"","Bilangan"],["2⁵ × 2³ = ...",["2⁸","2¹⁵","4⁸"],"","Bilangan"],["16^(1/2) = ...",["4","8","2"],"","Bilangan"],["Jika 2ˣ = 32, maka x = ...",["5","4","16"],"","Aljabar dan Fungsi"],["Jika 3ˣ⁺¹ = 81, maka x = ...",["3","4","2"],"","Aljabar dan Fungsi"],["Akar-akar persamaan x² − 5x + 6 = 0 adalah ...",["2 dan 3","−2 dan −3","1 dan 6"],"","Aljabar dan Fungsi"],["Persamaan x² + 2x + 5 = 0 memiliki akar ...",["Imajiner (tidak real)","Real kembar","Real berbeda"],"Diskriminan D = 2² − 4·1·5 = −16 < 0.","Aljabar dan Fungsi"],["Titik puncak grafik y = x² − 4x + 1 adalah ...",["(2, −3)","(−2, 13)","(4, 1)"],"","Aljabar dan Fungsi"],["Jika f(x) = 2ˣ, maka f(3) = ...",["8","6","9"],"","Aljabar dan Fungsi"],["Titik yang memenuhi x + y ≤ 4 adalah ...",["(1, 2)","(3, 3)","(5, 0)"],"","Aljabar dan Fungsi"],["Pada segitiga siku-siku, sin θ = ...",["Sisi depan : sisi miring","Sisi samping : sisi miring","Sisi depan : sisi samping"],"","Geometri"],["Segitiga siku-siku dengan sisi depan 3, samping 4, miring 5. Nilai sin θ = ...",["3/5","4/5","3/4"],"","Geometri"],["tan 45° = ...",["1","0","√3"],"","Geometri"],["cos 60° = ...",["1/2","½√3","0"],"","Geometri"],["Segitiga siku-siku dengan sisi samping 4 dan miring 5. Nilai cos θ = ...",["4/5","3/5","5/4"],"","Geometri"],["Jangkauan interkuartil dihitung dengan ...",["Q3 − Q1","Q3 + Q1","Maks − Min"],"","Analisis Data dan Peluang"],["Data 2, 4, 6, 8, 10, 12, 14. Jangkauan interkuartilnya ...",["8","12","6"],"","Analisis Data dan Peluang"],["Diagram pencar digunakan untuk ...",["Melihat hubungan dua variabel numerik","Menampilkan persentase","Menulis data teks"],"","Analisis Data dan Peluang"],["Box plot menampilkan ...",["Minimum, Q1, median, Q3, maksimum","Hanya rata-rata","Semua data satu per satu"],"","Analisis Data dan Peluang"],["Histogram cocok digunakan untuk menyajikan ...",["Data numerik dalam kelompok interval","Data teks","Peta lokasi"],"","Analisis Data dan Peluang"]],"Projek IPAS":[["Urutan organisasi kehidupan yang benar adalah ...",["Individu – populasi – komunitas – ekosistem – biosfer","Populasi – individu – ekosistem – komunitas – biosfer","Biosfer – individu – komunitas – populasi – ekosistem"],"","Makhluk Hidup dan Lingkungannya"],["Lapisan bumi yang berupa perairan disebut ...",["Hidrosfer","Litosfer","Atmosfer"],"","Makhluk Hidup dan Lingkungannya"],["Iklim adalah ...",["Rata-rata cuaca dalam waktu lama dan wilayah luas","Keadaan udara sesaat","Arah angin hari ini"],"","Makhluk Hidup dan Lingkungannya"],["Sekelompok makhluk hidup sejenis di suatu tempat disebut ...",["Populasi","Individu","Biosfer"],"","Makhluk Hidup dan Lingkungannya"],["Lapisan bumi yang berupa batuan disebut ...",["Litosfer","Hidrosfer","Atmosfer"],"","Makhluk Hidup dan Lingkungannya"],["Contoh perubahan fisika adalah ...",["Es mencair","Kayu terbakar","Besi berkarat"],"","Zat dan Perubahannya"],["Fermentasi kedelai menjadi tempe termasuk perubahan ...",["Biologi (oleh mikroorganisme)","Fisika","Wujud"],"","Zat dan Perubahannya"],["Garam dapur (NaCl) termasuk ...",["Senyawa","Unsur","Campuran"],"","Zat dan Perubahannya"],["Contoh perubahan kimia adalah ...",["Kayu terbakar","Lilin meleleh","Air menguap"],"","Zat dan Perubahannya"],["Contoh campuran adalah ...",["Air laut","Oksigen","Garam dapur murni"],"","Zat dan Perubahannya"],["Satuan SI untuk suhu adalah ...",["Kelvin","Celsius","Fahrenheit"],"","Energi dan Perubahannya"],["Setrika listrik mengubah energi listrik menjadi energi ...",["Panas","Bunyi","Kimia"],"","Energi dan Perubahannya"],["Contoh energi terbarukan adalah ...",["Tenaga surya","Batu bara","Gas alam"],"","Energi dan Perubahannya"],["Panel surya mengubah energi cahaya menjadi energi ...",["Listrik","Bunyi","Kimia"],"","Energi dan Perubahannya"],["Satuan SI untuk energi adalah ...",["Joule","Watt","Newton"],"","Energi dan Perubahannya"],["Kepadatan penduduk dihitung dengan rumus ...",["Jumlah penduduk : luas wilayah","Luas wilayah : jumlah penduduk","Kelahiran − kematian"],"","Keruangan dan Konektivitas"],["Contoh mitigasi bencana gempa bumi adalah ...",["Membangun rumah tahan gempa","Tinggal di lereng curam","Menimbun sungai"],"","Keruangan dan Konektivitas"],["Revolusi Industri 4.0 ditandai dengan ...",["Internet of Things dan kecerdasan artifisial","Mesin uap","Tenaga hewan"],"","Keruangan dan Konektivitas"],["Contoh potensi sumber daya alam laut Indonesia adalah ...",["Perikanan","Batu bara","Teh"],"","Keruangan dan Konektivitas"],["Peta digunakan untuk ...",["Menunjukkan letak suatu tempat","Mengukur suhu","Menghitung uang"],"","Keruangan dan Konektivitas"],["Contoh interaksi sosial asosiatif adalah ...",["Kerja sama","Persaingan tidak sehat","Konflik"],"","Interaksi dan Dinamika Sosial"],["Pembangunan berkelanjutan berarti memenuhi kebutuhan sekarang ...",["Tanpa mengorbankan generasi mendatang","Dengan menghabiskan sumber daya","Tanpa memikirkan lingkungan"],"","Interaksi dan Dinamika Sosial"],["Contoh lembaga sosial di bidang ekonomi adalah ...",["Pasar dan koperasi","Sekolah","Masjid"],"","Interaksi dan Dinamika Sosial"],["Contoh masalah sosial di perkotaan adalah ...",["Kemacetan dan permukiman kumuh","Gotong royong","Kerja bakti"],"","Interaksi dan Dinamika Sosial"],["Proses belajar nilai dan norma agar dapat diterima masyarakat disebut ...",["Sosialisasi","Inflasi","Mitigasi"],"","Interaksi dan Dinamika Sosial"],["Harga keseimbangan terjadi saat ...",["Jumlah permintaan sama dengan penawaran","Permintaan nol","Penawaran tak terbatas"],"","Perilaku Ekonomi dan Kesejahteraan"],["Inflasi adalah ...",["Kenaikan harga barang secara umum dan terus-menerus","Penurunan harga sesaat","Naiknya nilai rupiah"],"","Perilaku Ekonomi dan Kesejahteraan"],["Contoh uang digital adalah ...",["Saldo dompet digital (e-wallet)","Uang logam","Cek kertas"],"","Perilaku Ekonomi dan Kesejahteraan"],["Lembaga yang mengawasi jasa keuangan dan melindungi konsumen adalah ...",["OJK","BMKG","KPU"],"","Perilaku Ekonomi dan Kesejahteraan"],["Hak konsumen jasa keuangan antara lain ...",["Mendapat informasi produk yang jelas","Tidak boleh bertanya","Wajib membeli semua produk"],"","Perilaku Ekonomi dan Kesejahteraan"],["Modal utama dalam ekonomi kreatif adalah ...",["Ide dan kreativitas","Tanah yang luas","Mesin pabrik besar"],"Ekonomi kreatif bertumpu pada ide, gagasan, dan kreativitas manusia yang diolah menjadi nilai ekonomi.","Perilaku Ekonomi dan Kesejahteraan"],["Menurut Kemenparekraf, ekonomi kreatif Indonesia terdiri atas berapa subsektor?",["17 subsektor","12 subsektor","20 subsektor"],"Ada 17 subsektor, antara lain kuliner, fesyen, kriya, musik, film, desain, aplikasi, dan pengembang permainan.","Perilaku Ekonomi dan Kesejahteraan"],["Membuat tas anyaman dari daun pandan termasuk subsektor ...",["Kriya","Kuliner","Periklanan"],"Kriya adalah kerajinan tangan yang memadukan fungsi dan keindahan, seperti anyaman, ukiran, dan gerabah.","Perilaku Ekonomi dan Kesejahteraan"],["Siswa SMK membuat game edukasi untuk HP. Ini termasuk subsektor ...",["Aplikasi & pengembang permainan","Seni pertunjukan","Penerbitan"],"Pembuatan aplikasi dan game digital termasuk subsektor aplikasi dan pengembang permainan.","Perilaku Ekonomi dan Kesejahteraan"],["Desainer membuat koleksi baju bermotif batik modern. Ini termasuk subsektor ...",["Fesyen","Arsitektur","Televisi & radio"],"Fesyen mencakup desain dan produksi pakaian, alas kaki, dan aksesori.","Perilaku Ekonomi dan Kesejahteraan"],["Hak yang melindungi karya lagu atau buku ciptaan seseorang disebut ...",["Hak cipta","Hak paten","Hak guna usaha"],"Hak cipta melindungi karya seni, sastra, dan ilmu pengetahuan, misalnya lagu, buku, dan film.","Perilaku Ekonomi dan Kesejahteraan"],["Nama dan logo usaha agar tidak ditiru pihak lain dilindungi oleh ...",["Merek","Hak cipta","Paten"],"Merek melindungi tanda pembeda produk, seperti nama, logo, atau kombinasinya.","Perilaku Ekonomi dan Kesejahteraan"],["Penemuan alat atau teknologi baru dilindungi oleh ...",["Paten","Merek","Desain industri"],"Paten diberikan kepada penemu atas invensi di bidang teknologi.","Perilaku Ekonomi dan Kesejahteraan"],["Kayu biasa diolah menjadi kursi ukir sehingga harganya naik. Kenaikan nilai ini disebut ...",["Nilai tambah","Inflasi","Kelangkaan"],"Nilai tambah adalah pertambahan nilai suatu barang karena diolah, dikreasikan, atau diberi desain.","Perilaku Ekonomi dan Kesejahteraan"],["Sampah plastik diolah menjadi tas dan dompet yang laku dijual. Ini contoh penerapan ...",["Ekonomi sirkular","Ekonomi tertutup","Monopoli"],"Ekonomi sirkular memanfaatkan kembali limbah agar tetap bernilai dan mengurangi sampah.","Perilaku Ekonomi dan Kesejahteraan"],["Orang yang berani mengambil risiko untuk membuka usaha dan menciptakan peluang disebut ...",["Wirausaha","Konsumen","Distributor"],"Wirausaha (entrepreneur) kreatif dan inovatif menciptakan peluang usaha serta lapangan kerja.","Perilaku Ekonomi dan Kesejahteraan"],["Manfaat ekonomi kreatif bagi kesejahteraan masyarakat adalah ...",["Membuka lapangan kerja baru","Menambah ketergantungan impor","Mengurangi kreativitas"],"Usaha kreatif membuka lapangan kerja dan menambah pendapatan masyarakat, sehingga kesejahteraan meningkat.","Perilaku Ekonomi dan Kesejahteraan"],["Indeks Pembangunan Manusia (IPM) mengukur kesehatan, pendidikan, dan ...",["Standar hidup layak","Jumlah penduduk","Luas wilayah"],"IPM dipakai untuk mengukur kesejahteraan melalui umur panjang dan sehat, pendidikan, serta standar hidup layak.","Perilaku Ekonomi dan Kesejahteraan"],["Masalah ekonomi muncul karena kebutuhan tidak terbatas, sedangkan alat pemuasnya terbatas. Ini disebut ...",["Kelangkaan","Kemakmuran","Surplus"],"Kelangkaan mendorong manusia untuk berpikir kreatif dalam memanfaatkan sumber daya yang terbatas.","Perilaku Ekonomi dan Kesejahteraan"],["Mempromosikan produk kerajinan lewat Instagram dan marketplace disebut ...",["Pemasaran digital","Distribusi langsung","Barter"],"Pemasaran digital memanfaatkan internet dan media sosial untuk menjangkau lebih banyak pembeli.","Perilaku Ekonomi dan Kesejahteraan"]]},"F":{"Matematika":[["Suku ke-10 barisan 3, 7, 11, ... adalah ...",["39","43","40"],"Un = a + (n−1)b = 3 + 9 × 4 = 39.","Bilangan"],["Jumlah 2 + 4 + 6 + 8 + 10 = ...",["30","20","25"],"","Bilangan"],["Suku ke-5 barisan geometri 3, 6, 12, ... adalah ...",["48","24","96"],"","Bilangan"],["Bunga tunggal 10% per tahun dari Rp1.000.000 selama 2 tahun adalah ...",["Rp200.000","Rp210.000","Rp100.000"],"","Bilangan"],["Rp1.000.000 dengan bunga majemuk 10% per tahun selama 2 tahun menjadi ...",["Rp1.210.000","Rp1.200.000","Rp1.100.000"],"","Bilangan"],["Anuitas adalah ...",["Pembayaran tetap per periode (angsuran + bunga)","Bunga yang selalu nol","Pinjaman tanpa cicilan"],"","Bilangan"],["Jika f(x) = 2x + 1 dan g(x) = x², maka (g∘f)(1) = ...",["9","3","4"],"","Aljabar dan Fungsi"],["Invers dari f(x) = 2x + 4 adalah ...",["(x − 4)/2","2x − 4","(x + 4)/2"],"","Aljabar dan Fungsi"],["Grafik y = f(x) + 3 diperoleh dengan menggeser y = f(x) ...",["3 satuan ke atas","3 satuan ke kanan","3 satuan ke bawah"],"","Aljabar dan Fungsi"],["Jika f(x) = x + 2 dan g(x) = 3x, maka (f∘g)(2) = ...",["8","12","6"],"","Aljabar dan Fungsi"],["Grafik y = f(x − 2) diperoleh dengan menggeser y = f(x) ...",["2 satuan ke kanan","2 satuan ke kiri","2 satuan ke atas"],"","Aljabar dan Fungsi"],["Sudut pusat lingkaran 80°. Sudut keliling yang menghadap busur sama besarnya ...",["40°","80°","160°"],"","Geometri"],["Garis singgung lingkaran selalu ... jari-jari di titik singgung",["Tegak lurus","Sejajar","Berimpit"],"","Geometri"],["Sudut keliling yang menghadap diameter lingkaran besarnya ...",["90°","180°","45°"],"","Geometri"],["Panjang busur dengan sudut pusat 90° pada lingkaran berjari-jari 14 cm (π = 22/7) adalah ...",["22 cm","44 cm","88 cm"],"","Geometri"],["Luas juring dengan sudut pusat 90° pada lingkaran berjari-jari 14 cm (π = 22/7) adalah ...",["154 cm²","616 cm²","44 cm²"],"","Geometri"],["Korelasi positif berarti ...",["Jika satu variabel naik, variabel lain cenderung naik","Kedua variabel tidak berhubungan","Satu naik, yang lain turun"],"","Analisis Data dan Peluang"],["Dua variabel berasosiasi kuat belum tentu ...",["Memiliki hubungan sebab-akibat","Memiliki data","Dapat digambar"],"","Analisis Data dan Peluang"],["Peluang muncul dua angka pada pelemparan dua koin adalah ...",["1/4","1/2","3/4"],"","Analisis Data dan Peluang"],["Untuk kejadian saling lepas, P(A ∪ B) = ...",["P(A) + P(B)","P(A) × P(B)","P(A) − P(B)"],"","Analisis Data dan Peluang"],["Untuk kejadian saling bebas, P(A ∩ B) = ...",["P(A) × P(B)","P(A) + P(B)","0"],"","Analisis Data dan Peluang"],["Banyak cara memilih 2 orang dari 5 orang adalah ...",["10","20","25"],"","Analisis Data dan Peluang"],["Banyak susunan 3 orang dari 5 orang (permutasi) adalah ...",["60","10","15"],"","Analisis Data dan Peluang"]]}};
+
+
+/* ================= Pengaturan game ================= */
+const LANE_W = 2.2, SPAWN_Z = -100, ROW_GAP = 13, ROWS_PER_Q = 5;
+const GRAV = -26, JUMP_V = 9.5;
+
+/* ================= Util ================= */
+const $ = id => document.getElementById(id);
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ================= Audio ================= */
+let actx=null;
+function initAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){actx=null;}}
+function tone(f,d=0.12,type='sine',v=0.12,delay=0){
+  if(!actx)return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);
+  o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+0.02);}catch(e){}
+}
+const sfx={
+  coin(){tone(988,0.07,'square',0.05);tone(1319,0.1,'square',0.05,0.06);},
+  jump(){tone(420,0.15,'triangle',0.08);tone(620,0.12,'triangle',0.06,0.05);},
+  ok(){[523,659,784,1047].forEach((f,i)=>tone(f,0.16,'triangle',0.1,i*0.08));},
+  no(){tone(300,0.2,'sawtooth',0.07);tone(200,0.3,'sawtooth',0.07,0.15);},
+  hit(){tone(120,0.25,'square',0.09);},
+  lane(){tone(660,0.04,'sine',0.04);}
+};
+
+/* ================= Canvas textures ================= */
+function wrapLines(g,text,maxW){
+  const words=text.split(' '),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;}
+  if(cur)lines.push(cur);return lines;
+}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+function canvasTex(c){const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return t;}
+
+function panelTexture(letter,text,color){
+  const c=document.createElement('canvas');c.width=512;c.height=300;const g=c.getContext('2d');
+  g.fillStyle=color;rr(g,6,6,500,288,36);g.fill();g.lineWidth=12;g.strokeStyle='#fff';g.stroke();
+  g.fillStyle='#fff';g.beginPath();g.arc(64,64,40,0,Math.PI*2);g.fill();
+  g.fillStyle=color;g.font='800 56px "Baloo 2", sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(letter,64,68);
+  g.fillStyle='#fff';let size=50,lines;
+  do{g.font=`700 ${size}px "Baloo 2", sans-serif`;lines=wrapLines(g,text,440);size-=4;}while(lines.length*size*1.05>190&&size>24);
+  const lh=size*1.12,start=185-(lines.length-1)*lh/2;
+  lines.forEach((l,i)=>g.fillText(l,256,start+i*lh));
+  return canvasTex(c);
+}
+function signTexture(text,bg){
+  const c=document.createElement('canvas');c.width=320;c.height=96;const g=c.getContext('2d');
+  g.fillStyle='#fff8e7';rr(g,4,4,312,88,18);g.fill();g.lineWidth=8;g.strokeStyle=bg;g.stroke();
+  g.fillStyle='#1d2340';g.textAlign='center';g.textBaseline='middle';
+  let s=46;do{g.font=`800 ${s}px "Baloo 2", sans-serif`;s-=2;}while(g.measureText(text).width>285);
+  g.fillText(text,160,52);return canvasTex(c);
+}
+function stripeTexture(col){
+  const c=document.createElement('canvas');c.width=128;c.height=32;const g=c.getContext('2d');
+  for(let i=0;i<8;i++){g.fillStyle=i%2?'#ffffff':col;g.fillRect(i*16,0,16,32);}
+  return canvasTex(c);
+}
+/* ================= Scene ================= */
+const canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const SKY=0x9fdcff;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,55,125);
+const camera=new THREE.PerspectiveCamera(62,1,0.1,300);
+const hemi=new THREE.HemisphereLight(0xffffff,0x6a9a4a,0.75);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff2d6,0.95);sun.position.set(-8,18,8);sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-12,right:12,top:12,bottom:-20,near:1,far:60});
+scene.add(sun);scene.add(sun.target);sun.target.position.set(0,0,-6);
+
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
+  camera.fov=w<h?78:62;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+
+const mat=(c,o={})=>new THREE.MeshLambertMaterial(Object.assign({color:c},o));
+/* ---------- Karakter original: "Raka" si pelajar kreatif ---------- */
+const player={g:null,lane:0,x:0,y:0,vy:0,legs:[],arms:[],inv:0};
+function buildPlayer(){
+  const g=new THREE.Group();
+  const skin=mat(0xf2c08f),hoodie=mat(0xff7a2f),pants=mat(0x2b3a78),shoe=mat(0xffffff),hair=mat(0x2a1a12),bag=mat(0x23b37a);
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.4,0.75,12),hoodie);torso.position.y=1.15;g.add(torso);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.34,16,12),skin);head.position.y=1.82;g.add(head);
+  const hr=new THREE.Mesh(new THREE.SphereGeometry(0.36,16,10,0,Math.PI*2,0,Math.PI/2),hair);hr.position.y=1.86;hr.rotation.x=0.15;g.add(hr);
+  const cap=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.06,0.3),mat(0xffd54a));cap.position.set(0,2.0,-0.32);g.add(cap);
+  const pack=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.6,0.28),bag);pack.position.set(0,1.2,0.38);g.add(pack);
+  const pocket=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.22,0.06),mat(0xffd54a));pocket.position.set(0,1.08,0.55);g.add(pocket);
+  const mkLimb=(m,len,r,x,y)=>{const p=new THREE.Group();p.position.set(x,y,0);
+    const l=new THREE.Mesh(new THREE.CylinderGeometry(r,r*0.9,len,8),m);l.position.y=-len/2;p.add(l);g.add(p);return p;};
+  player.legs=[mkLimb(pants,0.72,0.13,-0.17,0.8),mkLimb(pants,0.72,0.13,0.17,0.8)];
+  player.legs.forEach(p=>{const s=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.14,0.38),shoe);s.position.set(0,-0.74,-0.06);p.add(s);});
+  player.arms=[mkLimb(hoodie,0.62,0.1,-0.47,1.45),mkLimb(hoodie,0.62,0.1,0.47,1.45)];
+  player.arms.forEach(p=>{const h=new THREE.Mesh(new THREE.SphereGeometry(0.11,8,6),skin);h.position.y=-0.66;p.add(h);});
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+  scene.add(g);player.g=g;
+}
+
+/* ================= TEMA DUNIA ================= */
+const SUBSEKTOR=["Kuliner","Fesyen","Kriya","Musik","Film & Animasi","Desain Grafis","Desain Interior","Desain Produk","Arsitektur","Fotografi","Seni Rupa","Seni Pertunjukan","Penerbitan","Periklanan","TV & Radio","Aplikasi","Game Dev"];
+const SEKOLAH=["Perpustakaan","Kantin Sehat","Lab IPA","Lab Komputer","Ruang Guru","UKS","Koperasi","Aula","Ruang Seni","Taman Baca","Ruang OSIS","Ruang Musik","Lapangan","Pojok Literasi"];
+const KOTA=["Toko Buku","Kafe","Bank","Museum","Galeri Seni","Studio Musik","Bioskop","Apotek","Pasar","Kantor Pos","Toko Roti","Perpustakaan Kota"];
+const STALL_COL=['#e0563b','#2f7de1','#8a4fd8','#14a37f','#f29b1d','#d63c8a'];
+const STALL_WALL=[0xfff1d6,0xe8f4ff,0xfde6ef,0xe9ffe9,0xfff9c4];
+const DECO_SPAN=200;
+const decos=[],signs=[];
+const decoGroup=new THREE.Group(),skyGroup=new THREE.Group();scene.add(decoGroup);scene.add(skyGroup);
+let roadTex=null,grassTex=null,roadMesh=null,sideMesh=null,builtTheme=null,signSet=null;
+
+function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return[c,c.getContext('2d')];}
+function texFrom(c,rx,ry){const t=canvasTex(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);return t;}
+function glowTex(col){const[c,g]=mkCanvas(64,64);const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return canvasTex(c);}
+function glowSprite(col,s){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(col),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));sp.scale.set(s,s,1);return sp;}
+
+function roadTexture(o){
+  const[c,g]=mkCanvas(256,256);
+  g.fillStyle=o.base;g.fillRect(0,0,256,256);
+  for(let i=0;i<500;i++){g.fillStyle=`rgba(${pick(o.spk)},${rand(.08,.25)})`;g.fillRect(rand(0,256),rand(0,256),rand(2,6),rand(2,6));}
+  g.fillStyle=o.edge;g.fillRect(0,0,10,256);g.fillRect(246,0,10,256);
+  if(o.glow){g.shadowColor=o.line;g.shadowBlur=16;}
+  g.fillStyle=o.line;
+  [0.351,0.649].forEach(u=>{g.fillRect(u*256-3,20,6,90);g.fillRect(u*256-3,148,6,90);});
+  if(o.edgeLine){g.fillRect(14,0,4,256);g.fillRect(238,0,4,256);}
+  return texFrom(c,1,300/8);
+}
+function sideTexture(kind){
+  const[c,g]=mkCanvas(256,256);const fill=col=>{g.fillStyle=col;g.fillRect(0,0,256,256);};
+  if(kind==='grass'||kind==='forest'||kind==='night'){
+    const P={grass:['#7cc85a','rgba(80,160,60,.5)','rgba(170,225,120,.45)'],forest:['#4f9e48','rgba(40,110,40,.55)','rgba(120,190,90,.4)'],night:['#2b5548','rgba(15,45,35,.6)','rgba(70,120,100,.4)']}[kind];
+    fill(P[0]);for(let i=0;i<900;i++){g.fillStyle=Math.random()<.5?P[1]:P[2];g.fillRect(rand(0,256),rand(0,256),2,rand(3,7));}
+    if(kind==='forest')for(let i=0;i<40;i++){g.fillStyle=pick(['rgba(200,140,60,.5)','rgba(160,90,40,.5)']);g.beginPath();g.ellipse(rand(0,256),rand(0,256),4,2,rand(0,3),0,7);g.fill();}
+  }else if(kind==='city'){
+    fill('#b8bcc6');g.strokeStyle='rgba(90,95,110,.35)';g.lineWidth=2;
+    for(let i=0;i<=256;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,256);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(256,i);g.stroke();}
+  }else if(kind==='space'){
+    fill('#140c33');for(let i=0;i<140;i++){g.fillStyle=`rgba(255,255,255,${rand(.2,.8)})`;g.fillRect(rand(0,256),rand(0,256),1.5,1.5);}
+    g.strokeStyle='rgba(130,100,255,.4)';g.lineWidth=2;for(let i=0;i<=256;i+=64){g.beginPath();g.moveTo(i,0);g.lineTo(i,256);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(256,i);g.stroke();}
+  }else if(kind==='cloud'){
+    fill('#f4f8ff');for(let i=0;i<70;i++){const x=rand(0,256),y=rand(0,256),r=rand(10,30);const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(196,212,245,.55)');gr.addColorStop(1,'rgba(196,212,245,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r);}
+  }
+  return texFrom(c,20,300/8);
+}
+function buildGround(){
+  roadMesh=new THREE.Mesh(new THREE.PlaneGeometry(7.4,300),new THREE.MeshLambertMaterial());
+  roadMesh.rotation.x=-Math.PI/2;roadMesh.position.set(0,0.01,-120);roadMesh.receiveShadow=true;scene.add(roadMesh);
+  sideMesh=new THREE.Mesh(new THREE.PlaneGeometry(160,300),new THREE.MeshLambertMaterial());
+  sideMesh.rotation.x=-Math.PI/2;sideMesh.position.set(0,0,-120);sideMesh.receiveShadow=true;scene.add(sideMesh);
+}
+
+/* ---------- Langit ---------- */
+function skyClouds(color=0xffffff,n=14){
+  const cm=new THREE.MeshLambertMaterial({color});
+  for(let i=0;i<n;i++){const g=new THREE.Group();
+    for(let k=0;k<4;k++){const s=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),10,8),cm);s.position.set(k*2.6-4,rand(-.6,.6),rand(-1,1));g.add(s);}
+    g.position.set(rand(-70,70),rand(22,34),rand(-120,-40));g.scale.y=.6;skyGroup.add(g);}
+}
+function skyStars(n=1100){
+  const pos=[];
+  for(let i=0;i<n;i++){
+    if(i%3)pos.push(rand(-320,320),rand(4,220),rand(-260,-130));
+    else pos.push(rand(-260,260),rand(90,200),rand(-130,20));
+  }
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  skyGroup.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xffffff,size:2.2,sizeAttenuation:false,fog:false,transparent:true,opacity:.9})));
+  const pos2=[];for(let i=0;i<120;i++)pos2.push(rand(-300,300),rand(10,200),rand(-260,-140));
+  const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(pos2,3));
+  skyGroup.add(new THREE.Points(g2,new THREE.PointsMaterial({color:0xfff2a8,size:3.6,sizeAttenuation:false,fog:false})));
+}
+function skyBall(r,col,x,y,z,lit=false){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(r,32,20),lit?new THREE.MeshLambertMaterial({color:col,fog:false}):new THREE.MeshBasicMaterial({color:col,fog:false}));
+  m.position.set(x,y,z);skyGroup.add(m);return m;
+}
+function skyMoon(){skyBall(11,0xfff4c8,-55,62,-210);const g=glowSprite('rgba(255,240,190,.55)',70);g.position.set(-55,62,-212);g.material.fog=false;skyGroup.add(g);}
+function skySun(){skyBall(12,0xfff3a0,55,58,-215);const g=glowSprite('rgba(255,236,150,.6)',80);g.position.set(55,58,-217);g.material.fog=false;skyGroup.add(g);}
+function skyPlanets(){
+  const p1=skyBall(24,0xff8a5c,70,48,-215,true);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(31,44,64),new THREE.MeshBasicMaterial({color:0xffd59a,side:THREE.DoubleSide,transparent:true,opacity:.55,fog:false}));
+  ring.position.copy(p1.position);ring.rotation.set(1.25,0.2,0.3);skyGroup.add(ring);
+  skyBall(10,0x5cc8ff,-85,32,-190,true);skyBall(5,0xc28bff,-20,95,-230,true);skyBall(3,0x7dffb0,30,75,-200,true);
+  [['rgba(170,80,255,.45)',-60,60,190],['rgba(255,80,170,.35)',80,90,170],['rgba(60,140,255,.35)',0,40,220]].forEach(([c,x,y,s])=>{
+    const n=glowSprite(c,s);n.position.set(x,y,-240);n.material.fog=false;skyGroup.add(n);});
+}
+function skyRainbow(){
+  ['#ff5a5a','#ffa43a','#ffe14a','#5fd35f','#4aa8ff','#7a6bff','#c26bff'].forEach((c,i)=>{
+    const t=new THREE.Mesh(new THREE.TorusGeometry(70-i*2.2,1.1,8,64,Math.PI),new THREE.MeshBasicMaterial({color:c,fog:false,transparent:true,opacity:.75}));
+    t.position.set(-10,-8,-220);skyGroup.add(t);});
+}
+
+/* ---------- Benda dekorasi ---------- */
+const mL=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
+function addDeco(o,x,z,y){o.position.set(x,y||o.position.y||0,z);
+  if(Math.abs(x)<10)o.traverse(c=>{if(c.isMesh)c.castShadow=true;});
+  decoGroup.add(o);decos.push(o);return o;}
+function addSign(g,w,y,z,col){
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(w,w*0.3),new THREE.MeshBasicMaterial({map:signTexture('',col)}));
+  s.position.set(0,y,z);g.add(s);signs.push({m:s,col});return s;
+}
+function makeStall(side){
+  const g=new THREE.Group();const col=pick(STALL_COL);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(3.2,2.3,2.6),mL(pick(STALL_WALL)));base.position.y=1.15;g.add(base);
+  const door=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.2,0.05),mL(0x5a3b25));door.position.set(0,0.9,1.31);g.add(door);
+  const aw=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.12,1.3),new THREE.MeshLambertMaterial({map:stripeTexture(col)}));aw.position.set(0,2.15,1.75);aw.rotation.x=0.35;g.add(aw);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(2.4,1.2,4),mL(new THREE.Color(col).multiplyScalar(0.8)));roof.position.y=2.9;roof.rotation.y=Math.PI/4;g.add(roof);
+  addSign(g,2.6,2.75,1.33,col);
+  g.rotation.y=side<0?0.55:-0.55;return g;
+}
+function makeTree(kind){
+  const g=new THREE.Group();
+  const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,1.4,6),mL(kind==='night'?0x3a2a22:0x8a5a33));tr.position.y=0.7;g.add(tr);
+  const top=kind==='night'?pick([0x1f4a3c,0x24584a,0x1a3d34]):kind==='forest'?pick([0x2e8a3e,0x3fa04a,0x267a44,0x4cae4f]):pick([0x3fae4a,0x55c25a,0x2e9a50]);
+  const pine=kind==='forest'?Math.random()<.6:Math.random()<.5;
+  if(pine){for(let k=0;k<(kind==='forest'?3:1);k++){const c=new THREE.Mesh(new THREE.ConeGeometry(1.2-k*0.25,kind==='forest'?1.8:2.6,8),mL(top));c.position.y=(kind==='forest'?1.9:2.4)+k*0.9;g.add(c);}}
+  else{const s=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8),mL(top));s.position.y=2.3;g.add(s);}
+  const s=kind==='forest'?rand(1,1.8):rand(.8,1.3);g.scale.set(s,s,s);return g;
+}
+function makeBush(col=0x3f9e44){const g=new THREE.Group();for(let i=0;i<3;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(rand(.4,.7),8,6),mL(col));s.position.set(i*.5-.5,.35,rand(-.2,.2));g.add(s);}return g;}
+function makeRock(col=0x8d8f99){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(.4,.9)),mL(col,{flatShading:true}));m.position.y=.3;m.rotation.set(rand(0,3),rand(0,3),0);return m;}
+function makeMushroom(){const g=new THREE.Group();const st=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.5,8),mL(0xfff3dc));st.position.y=.25;g.add(st);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.4,12,8,0,Math.PI*2,0,Math.PI/2),mL(0xe0453b));cap.position.y=.48;g.add(cap);
+  for(let i=0;i<4;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.06,6,4),mL(0xffffff));const a=i*1.6;d.position.set(Math.cos(a)*.25,.7,Math.sin(a)*.25);g.add(d);}
+  const s=rand(.8,1.6);g.scale.set(s,s,s);return g;}
+function makeLog(){const m=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,2,10),mL(0x7a4f2a));m.rotation.z=Math.PI/2;m.rotation.y=rand(0,1);m.position.y=.3;return m;}
+function windowTex(wall,lit){const[c,g]=mkCanvas(128,256);g.fillStyle=wall;g.fillRect(0,0,128,256);
+  for(let y=14;y<250;y+=26)for(let x=10;x<120;x+=28){g.fillStyle=lit?(Math.random()<.6?'#ffd66b':'#24304d'):(Math.random()<.85?'#9fd2f0':'#e6f5ff');g.fillRect(x,y,18,16);}
+  return canvasTex(c);}
+function makeBuilding(night,wins){
+  const g=new THREE.Group();const w=rand(4,5.5),h=rand(5,15),d=rand(4,5.5);
+  const wm=new THREE.MeshLambertMaterial({map:pick(wins)});const roof=mL(night?0x2a2f45:0x6c7488);
+  const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),[wm,wm,roof,roof,wm,wm]);b.position.y=h/2;g.add(b);
+  const shop=new THREE.Mesh(new THREE.BoxGeometry(w+.1,1.6,d+.1),mL(pick([0xffe7c2,0xd9f0ff,0xffd9e5,0xe2ffd9])));shop.position.y=.8;g.add(shop);
+  addSign(g,Math.min(3,w*.8),2.0,d/2+.08,pick(STALL_COL));
+  return g;
+}
+function makeLamp(){
+  const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,3.4,6),mL(0x2b2f3a));pole.position.y=1.7;g.add(pole);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),new THREE.MeshBasicMaterial({color:0xfff1b0}));head.position.y=3.5;g.add(head);
+  const gl=glowSprite('rgba(255,225,140,.75)',2.8);gl.position.y=3.5;g.add(gl);return g;
+}
+function makeHouse(night){
+  const g=new THREE.Group();const wall=pick([0xf5e1c8,0xdfe8f5,0xf2d6dc,0xe0f0d8]);
+  const b=new THREE.Mesh(new THREE.BoxGeometry(3,2.4,3),mL(wall));b.position.y=1.2;g.add(b);
+  const r=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.5,4),mL(pick([0xb5443a,0x3d5a8a,0x7a4a8a])));r.position.y=3.15;r.rotation.y=Math.PI/4;g.add(r);
+  const wcol=night?0xffd66b:0x9fd2f0;
+  [-0.8,0.8].forEach(x=>{const w=new THREE.Mesh(new THREE.PlaneGeometry(.6,.6),new THREE.MeshBasicMaterial({color:wcol}));w.position.set(x,1.5,1.51);g.add(w);});
+  const dr=new THREE.Mesh(new THREE.PlaneGeometry(.7,1.2),mL(0x5a3b25));dr.position.set(0,.6,1.51);g.add(dr);
+  if(night){const gl=glowSprite('rgba(255,210,110,.45)',3.5);gl.position.set(0,1.5,1.7);g.add(gl);}
+  return g;
+}
+function makeCrystal(){
+  const col=pick([0x34e7ff,0xff4fd8,0x9b7bff,0x5cffb0]);
+  const m=new THREE.Mesh(new THREE.OctahedronGeometry(rand(.6,1.3)),new THREE.MeshPhongMaterial({color:col,emissive:new THREE.Color(col).multiplyScalar(.45),flatShading:true,shininess:90}));
+  m.scale.y=1.8;m.position.y=1.4;m.userData.spin=rand(.4,1.2);return m;
+}
+function makeAsteroid(){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(rand(.8,2.2)),mL(pick([0x6d5f8f,0x857aa3,0x5a4f73]),{flatShading:true}));m.position.y=rand(1.5,6);m.userData.spin=rand(.2,.8);return m;}
+function makeNeon(col){const m=new THREE.Mesh(new THREE.BoxGeometry(.18,1.3,.18),new THREE.MeshBasicMaterial({color:col}));m.position.y=.65;return m;}
+function makeMiniPlanet(){const g=new THREE.Group();const col=pick([0xff9d5c,0x5cc8ff,0xffd84a,0xb07cff]);
+  const p=new THREE.Mesh(new THREE.SphereGeometry(rand(1,2),16,12),mL(col));g.add(p);
+  if(Math.random()<.6){const r=new THREE.Mesh(new THREE.RingGeometry(2.3,3,32),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,transparent:true,opacity:.5}));r.rotation.x=1.2;g.add(r);}
+  g.position.y=rand(5,12);g.userData.spin=.3;return g;}
+function makeCloudPuff(s=1){const g=new THREE.Group();const m=mL(0xffffff,{emissive:0x8090b0,emissiveIntensity:.15});
+  for(let i=0;i<4;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(rand(.6,1.1)*s,10,8),m);b.position.set((i-1.5)*.9*s,rand(0,.4)*s,rand(-.3,.3)*s);g.add(b);}return g;}
+function makeIsland(){const g=new THREE.Group();
+  const rock=new THREE.Mesh(new THREE.ConeGeometry(2.2,3,7),mL(0x9a6b45,{flatShading:true}));rock.rotation.x=Math.PI;rock.position.y=-1.5;g.add(rock);
+  const top=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.2,.4,7),mL(0x6fd06a));g.add(top);
+  const t=makeTree('day');t.scale.set(.8,.8,.8);t.position.y=.2;g.add(t);g.position.y=rand(3,8);return g;}
+function makeBalloon(){const g=new THREE.Group();const col=pick([0xff6b6b,0xffc93c,0x6bc5ff,0xb57bff,0xff8fd0]);
+  const b=new THREE.Mesh(new THREE.SphereGeometry(1.3,16,12),mL(col));b.scale.y=1.2;g.add(b);
+  const k=new THREE.Mesh(new THREE.BoxGeometry(.6,.5,.6),mL(0x8a5a33));k.position.y=-2.2;g.add(k);
+  g.position.y=rand(9,15);return g;}
+
+/* ---------- Daftar tema ---------- */
+const THEMES={
+  sekolah:{nama:'Sekolah Ceria',emoji:'🏫',sky:0x9fdcff,fog:[55,125],hemi:[0xffffff,0x6a9a4a,.75],sun:[0xfff2d6,.95],
+    road:{base:'#d9a96a',spk:['150,100,50','250,215,160'],edge:'#b9864c',line:'rgba(255,255,255,.75)'},side:'grass',signs:'sekolah',
+    sky_(){skyClouds();},
+    decorate(){for(let z=-4;z>-DECO_SPAN;z-=14)[-1,1].forEach(s=>addDeco(makeStall(s),s*rand(6.3,7.2),z+(s>0?7:0)));
+      for(let z=0;z>-DECO_SPAN;z-=5)[-1,1].forEach(s=>addDeco(makeTree('day'),s*rand(10,22),z+rand(-2,2)));}},
+  hutan:{nama:'Hutan Petualang',emoji:'🌳',sky:0xb5e3ff,fogCol:0xcfe8d8,fog:[40,110],hemi:[0xffffff,0x4a7a3a,.8],sun:[0xfff2d6,.9],
+    road:{base:'#b98a5a',spk:['120,80,40','220,180,130'],edge:'#7f5a34',line:'rgba(255,240,200,.6)'},side:'forest',
+    sky_(){skyClouds();},
+    decorate(){for(let z=0;z>-DECO_SPAN;z-=4)[-1,1].forEach(s=>{addDeco(makeTree('forest'),s*rand(5.6,9),z+rand(-1.5,1.5));addDeco(makeTree('forest'),s*rand(10,24),z+rand(-2,2));});
+      for(let z=-2;z>-DECO_SPAN;z-=6)[-1,1].forEach(s=>{const r=Math.random();addDeco(r<.35?makeMushroom():r<.7?makeBush():r<.85?makeRock():makeLog(),s*rand(4.3,5.2),z+rand(-2,2));});}},
+  kota:{nama:'Kota Masa Depan',emoji:'🏙️',sky:0xa9d4f5,fog:[55,130],hemi:[0xffffff,0x8a8f9a,.8],sun:[0xfff2d6,.95],
+    road:{base:'#4a4f5c',spk:['30,30,40','120,120,130'],edge:'#e0e0e0',line:'#ffffff',edgeLine:true},side:'city',signs:'kota',
+    sky_(){skyClouds();},
+    decorate(){const wins=[0xdfe6f2,0xf2dccf,0xcfe0d8,0xe8d9f2].map(c=>windowTex('#'+c.toString(16),false));
+      for(let z=-3;z>-DECO_SPAN;z-=6.5)[-1,1].forEach(s=>addDeco(makeBuilding(false,wins),s*rand(7.6,8.4),z));
+      for(let z=0;z>-DECO_SPAN;z-=16)[-1,1].forEach(s=>addDeco(makeLamp(),s*4.4,z));
+      for(let z=-8;z>-DECO_SPAN;z-=16)[-1,1].forEach(s=>{const t=makeTree('day');t.scale.set(.6,.6,.6);addDeco(t,s*4.6,z);});}},
+  galaksi:{nama:'Galaksi',emoji:'🌌',sky:0x0b0624,fogCol:0x1a0f45,fog:[45,140],hemi:[0xc8b8ff,0x2a1a5a,.85],sun:[0xd8c8ff,.7],basic:true,
+    road:{base:'#24164f',spk:['120,90,255','40,20,90'],edge:'#00e5ff',line:'#00e5ff',glow:true,edgeLine:true},side:'space',
+    sky_(){skyStars();skyPlanets();},
+    decorate(){for(let z=0;z>-DECO_SPAN;z-=8)[-1,1].forEach(s=>addDeco(makeNeon(s<0?0x00e5ff:0xff4fd8),s*4.1,z));
+      for(let z=-3;z>-DECO_SPAN;z-=7)[-1,1].forEach(s=>addDeco(Math.random()<.55?makeCrystal():makeAsteroid(),s*rand(5.5,12),z+rand(-2,2)));
+      for(let z=-10;z>-DECO_SPAN;z-=28)[-1,1].forEach(s=>addDeco(makeMiniPlanet(),s*rand(14,24),z));}},
+  malam:{nama:'Malam Berbintang',emoji:'✨',sky:0x0e1a3a,fogCol:0x15244a,fog:[35,115],hemi:[0x9fb4ff,0x1a2a3a,.6],sun:[0xbcd0ff,.5],
+    road:{base:'#8a7a64',spk:['60,50,40','170,150,120'],edge:'#5f523f',line:'rgba(255,240,200,.65)'},side:'night',
+    sky_(){skyStars();skyMoon();},
+    decorate(){for(let z=-6;z>-DECO_SPAN;z-=15)[-1,1].forEach(s=>{const h=makeHouse(true);h.rotation.y=s<0?.5:-.5;addDeco(h,s*rand(6.6,7.6),z+(s>0?7:0));});
+      for(let z=0;z>-DECO_SPAN;z-=12)[-1,1].forEach(s=>addDeco(makeLamp(),s*4.4,z));
+      for(let z=0;z>-DECO_SPAN;z-=6)[-1,1].forEach(s=>addDeco(makeTree('night'),s*rand(10,22),z+rand(-2,2)));}},
+  awan:{nama:'Negeri Awan',emoji:'☁️',sky:0xcfe9ff,fogCol:0xe8f3ff,fog:[50,135],hemi:[0xffffff,0xc8d8ff,.95],sun:[0xfff6e0,.8],
+    road:{base:'#ffe0f0',spk:['255,255,255','255,170,215'],edge:'#ff9ccc',line:'#ffffff',edgeLine:true},side:'cloud',
+    sky_(){skySun();skyRainbow();skyClouds(0xffffff,10);},
+    decorate(){for(let z=0;z>-DECO_SPAN;z-=3.2)[-1,1].forEach(s=>{const p=makeCloudPuff(.6);addDeco(p,s*4.3,z,.2);});
+      for(let z=-4;z>-DECO_SPAN;z-=7)[-1,1].forEach(s=>{const p=makeCloudPuff(rand(1.2,2));addDeco(p,s*rand(7,16),z+rand(-2,2),rand(0,2));});
+      for(let z=-10;z>-DECO_SPAN;z-=18)[-1,1].forEach(s=>addDeco(Math.random()<.6?makeIsland():makeBalloon(),s*rand(8,18),z));}},
+};
+const AUTO_TEMA={'SD':'sekolah','SMP':'hutan','SMA':'kota','SMK':'galaksi'};
+
+function disposeDeep(o){o.traverse(c=>{if(c.geometry)c.geometry.dispose();if(c.material)(Array.isArray(c.material)?c.material:[c.material]).forEach(m=>{if(m.map)m.map.dispose();m.dispose();});});}
+function applyTheme(key){
+  if(builtTheme===key)return;builtTheme=key;signSet=null;const t=THEMES[key];
+  [decoGroup,skyGroup].forEach(gr=>{while(gr.children.length){const c=gr.children.pop();disposeDeep(c);}});
+  decos.length=0;signs.length=0;
+  scene.background.set(t.sky);scene.fog.color.set(t.fogCol||t.sky);scene.fog.near=t.fog[0];scene.fog.far=t.fog[1];
+  hemi.color.set(t.hemi[0]);hemi.groundColor.set(t.hemi[1]);hemi.intensity=t.hemi[2];
+  sun.color.set(t.sun[0]);sun.intensity=t.sun[1];
+  if(roadTex)roadTex.dispose();if(grassTex)grassTex.dispose();
+  roadTex=roadTexture(t.road);grassTex=sideTexture(t.side);
+  const M=t.basic?THREE.MeshBasicMaterial:THREE.MeshLambertMaterial;
+  roadMesh.material.dispose();roadMesh.material=new M({map:roadTex});
+  sideMesh.material.dispose();sideMesh.material=new M({map:grassTex});
+  t.sky_();t.decorate();
+}
+function setSigns(list){if(signSet===list)return;signSet=list;signs.forEach((s,i)=>{s.m.material.map.dispose();s.m.material.map=signTexture(list[i%list.length],s.col);s.m.material.needsUpdate=true;});}
+
+
+/* ---------- Objek di jalur ---------- */
+const objs=[];
+const coinGeo=new THREE.CylinderGeometry(0.34,0.34,0.08,18),coinMat=new THREE.MeshPhongMaterial({color:0xffc928,emissive:0x664400,shininess:80});
+const crateMat=mat(0xb07a42),crateEdge=mat(0x7a4f25);
+function addCoin(lane,z,y=0.8){const m=new THREE.Mesh(coinGeo,coinMat);m.rotation.x=Math.PI/2;m.position.set(lane*LANE_W,y,z);scene.add(m);objs.push({type:'coin',lane,m,y});}
+function addCrate(lane,z){
+  const g=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.0,1.0),crateMat);b.position.y=0.5;b.castShadow=true;g.add(b);
+  [0.25,0.75].forEach(y=>{const s=new THREE.Mesh(new THREE.BoxGeometry(1.34,0.1,1.04),crateEdge);s.position.y=y;g.add(s);});
+  g.position.set(lane*LANE_W,0,z);scene.add(g);objs.push({type:'crate',lane,m:g,h:0.95});
+}
+function addWall(lane,z){
+  const g=new THREE.Group();
+  const p=new THREE.Mesh(new THREE.BoxGeometry(1.8,2.4,0.3),mat(0xe0563b));p.position.y=1.2;p.castShadow=true;g.add(p);
+  for(let i=0;i<3;i++){const s=new THREE.Mesh(new THREE.BoxGeometry(1.84,0.22,0.32),mat(0xffffff));s.position.y=0.5+i*0.75;g.add(s);}
+  g.position.set(lane*LANE_W,0,z);scene.add(g);objs.push({type:'wall',lane,m:g,h:99});
+}
+const OPT_COL=['#2f7de1','#8a4fd8','#14a37f'],LETTERS=['A','B','C'];
+function addGate(q){
+  const g=new THREE.Group();const postM=mat(0x1d2340);
+  [-1.5,-0.5,0.5,1.5].forEach(i=>{const p=new THREE.Mesh(new THREE.BoxGeometry(0.22,4.2,0.22),postM);p.position.set(i*LANE_W,2.1,0);p.castShadow=true;g.add(p);});
+  const top=new THREE.Mesh(new THREE.BoxGeometry(LANE_W*3+0.5,0.3,0.3),mat(0xffd54a));top.position.y=4.3;g.add(top);
+  const panels=[];
+  q.opsi.forEach((t,i)=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.05,1.2),new THREE.MeshBasicMaterial({map:panelTexture(LETTERS[i],t,OPT_COL[i]),side:THREE.DoubleSide}));
+    m.position.set((i-1)*LANE_W,3.4,0.05);g.add(m);panels.push(m);
+  });
+  g.position.z=SPAWN_Z;scene.add(g);
+  const o={type:'gate',m:g,q,panels};objs.push(o);return o;
+}
+function removeObj(o){scene.remove(o.m);o.m.traverse(c=>{if(c.isMesh){if(c.geometry!==coinGeo)c.geometry.dispose();if(c.material.map&&o.type==='gate')c.material.map.dispose();}});}
+
+/* ---------- Partikel ---------- */
+const parts=[];
+function burst(x,y,z,color,n=14){
+  for(let i=0;i<n;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,.14),new THREE.MeshBasicMaterial({color}));
+    m.position.set(x,y,z);scene.add(m);parts.push({m,v:new THREE.Vector3(rand(-3,3),rand(2,6),rand(-3,2)),life:rand(.5,.9)});}
+}
+
+/* ================= State ================= */
+let S=null,running=false,paused=false;
+function newState(){
+  const qs=shuffle(currentSet()).slice(0,PER_MAIN).map(s=>{const ord=shuffle([0,1,2]);return{q:s.q,info:s.info,el:s.el||'',opsi:ord.map(i=>s.opsi[i]),benar:ord.indexOf(s.benar)};});
+  return{qs,qi:0,score:0,coins:0,correct:0,wrong:[],speed:12,dist:0,sinceRow:0,rows:0,gate:null,finished:false,t:0,shake:0,slow:0,
+    name:($('nama').value.trim()||'Pelajar Pintar'),label:setLabel()};
+}
+function clearWorld(){objs.splice(0).forEach(removeObj);parts.splice(0).forEach(p=>scene.remove(p.m));}
+
+function updateHUD(){
+  $('score').textContent=S.score;$('coins').textContent=S.coins;$('correct').textContent=S.correct;
+  $('qprog').textContent=`${Math.min(S.qi+(S.gate?1:0),S.qs.length)}/${S.qs.length}`;
+}
+
+/* ---------- Spawn baris rintangan & koin ---------- */
+function spawnRow(safe){
+  const r=safe?0:Math.random(),lanes=shuffle([-1,0,1]);
+  if(r<0.35){ // koin
+    const l=lanes[0];for(let i=0;i<5;i++)addCoin(l,SPAWN_Z-i*1.8);
+  }else if(r<0.65){ // peti + koin melayang di atasnya
+    addCrate(lanes[0],SPAWN_Z);for(let i=0;i<3;i++)addCoin(lanes[0],SPAWN_Z+1.8-i*1.8,2.1);
+    if(Math.random()<.4)addCrate(lanes[1],SPAWN_Z);
+  }else{ // pagar tinggi, 1–2 jalur
+    addWall(lanes[0],SPAWN_Z);if(Math.random()<.45)addWall(lanes[1],SPAWN_Z);
+    for(let i=0;i<4;i++)addCoin(lanes[2],SPAWN_Z-i*1.8);
+  }
+}
+
+/* ---------- Kartu soal ---------- */
+function showQuestion(q,n){
+  $('qnum').textContent=`Soal ${n} dari ${S.qs.length} · pilih jalur!`;$('qtext').textContent=q.q;
+  const pos=['Kiri','Tengah','Kanan'];
+  $('qopts').innerHTML=q.opsi.map((t,i)=>`<div class="opt o${i}"><span class="k">${LETTERS[i]}</span><span><small>${pos[i]}</small>${esc(t)}</span></div>`).join('');
+  $('qcard').classList.add('show');
+}
+let fbTimer=0;
+function feedback(ok,title,text){
+  const f=$('fb');f.className=ok?'ok show':'no show';f.querySelector('h2').textContent=title;f.querySelector('p').textContent=text;
+  clearTimeout(fbTimer);fbTimer=setTimeout(()=>f.classList.remove('show'),3200);
+}
+
+function judgeGate(o){
+  const idx=player.lane+1,q=o.q;
+  $('qcard').classList.remove('show');
+  if(idx===q.benar){
+    S.correct++;q.ok=true;S.score+=100;sfx.ok();burst(player.x,2.5,-1,0x3fe08a,26);burst(player.x,2.5,-1,0xffd54a,18);
+    feedback(true,'Benar! +100',q.info||`Jawabannya: ${q.opsi[q.benar]}`);
+  }else{
+    S.wrong.push(q);sfx.no();S.shake=0.4;burst(player.x,2.5,-1,0xe0563b,14);
+    feedback(false,'Belum tepat 😅',`Jawaban benar: ${LETTERS[q.benar]}. ${q.opsi[q.benar]}`+(q.info?` — ${q.info}`:''));
+  }
+  S.gate=null;S.qi++;S.rows=0;S.sinceRow=-6;
+  if(S.qi>=S.qs.length){S.finished=true;setTimeout(endGame,3400);}
+  updateHUD();
+}
+
+/* ================= Input ================= */
+function move(d){if(!running||paused)return;const n=Math.max(-1,Math.min(1,player.lane+d));if(n!==player.lane){player.lane=n;sfx.lane();}}
+function jump(){if(!running||paused)return;if(player.y<=0.001){player.vy=JUMP_V;sfx.jump();}}
+addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA/.test(document.activeElement&&document.activeElement.tagName))return;
+  const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a'){move(-1);e.preventDefault();}
+  else if(k==='arrowright'||k==='d'){move(1);e.preventDefault();}
+  else if(k==='arrowup'||k==='w'||k===' '){jump();e.preventDefault();}
+  else if(k==='p'||k==='escape'){togglePause();}
+});
+let ts=null;
+canvas.addEventListener('touchstart',e=>{const t=e.changedTouches[0];ts={x:t.clientX,y:t.clientY};},{passive:true});
+canvas.addEventListener('touchend',e=>{if(!ts)return;const t=e.changedTouches[0],dx=t.clientX-ts.x,dy=t.clientY-ts.y;ts=null;
+  if(Math.abs(dx)<25&&Math.abs(dy)<25)return;
+  if(Math.abs(dx)>Math.abs(dy))move(dx>0?1:-1);else if(dy<0)jump();},{passive:true});
+const tb=(id,fn)=>$(id).addEventListener('pointerdown',e=>{e.preventDefault();fn();});
+tb('tL',()=>move(-1));tb('tR',()=>move(1));tb('tJ',jump);
+
+function togglePause(){if(!running||S.finished)return;paused=!paused;$('pauseOv').classList.toggle('hide',!paused);}
+$('pauseBtn').onclick=togglePause;$('resumeBtn').onclick=togglePause;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused&&!S.finished)togglePause();});
+
+/* ================= Pilih jenjang & mapel ================= */
+const GURU='✏️ Soal buatan guru';
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let custom=[];
+try{custom=JSON.parse(localStorage.getItem('lariPintarSoalGuru')||'[]')||[];}catch(e){custom=[];}
+let customText='';try{customText=localStorage.getItem('lariPintarSoalGuruTeks')||'';}catch(e){}
+const sel={jenjang:'SD',kelas:'1',mapel:'Matematika',tema:'auto',elemen:'semua',kat:'Umum'};
+const KAT_URUT=['Umum','Agama','Seni & PJOK','Pilihan','Prakarya','Bahasa Asing'];
+const KAT_IKON={'Umum':'📚','Agama':'🕊️','Seni & PJOK':'🎨','Pilihan':'🔬','Prakarya':'🛠️','Bahasa Asing':'🌏'};
+function katOf(m){if(/^Agama /.test(m))return'Agama';if(/^(PJOK|Seni )/.test(m))return'Seni & PJOK';if(/^(Fisika|Kimia|Biologi|Geografi|Ekonomi|Sosiologi|Antropologi)$/.test(m))return'Pilihan';if(/^(Prakarya|PKWU)/.test(m))return'Prakarya';if(/^Bahasa (Arab|Jepang|Jerman|Korea|Mandarin|Prancis)$/.test(m))return'Bahasa Asing';return'Umum';}const PER_MAIN=10;
+try{const sv=JSON.parse(localStorage.getItem('lariPintarPilihan')||'null');if(sv&&STRUKTUR[sv.jenjang]&&STRUKTUR[sv.jenjang][sv.kelas]){sel.jenjang=sv.jenjang;sel.kelas=sv.kelas;sel.mapel=sv.mapel||sel.mapel;}if(sv&&(sv.tema==='auto'||THEMES[sv.tema]))sel.tema=sv.tema;}catch(e){}
+function toSoal(r){return{q:r[0],opsi:r[1].slice(0,3),benar:0,info:r[2]||'',el:r[3]||''};}
+function kelasInfo(){return STRUKTUR[sel.jenjang][sel.kelas];}
+function poolOf(m){const k=kelasInfo();return(POOL[k.fase][k.mapel[m]]||[]);}
+function isLocked(m){if(!DEMO)return false;if(m===GURU)return true;const k=kelasInfo();return !POOL[k.fase][k.mapel[m]];}
+function upsell(judul){$('upsellJudul').textContent=judul;$('startOv').classList.add('hide');$('upsellOv').classList.remove('hide');}
+$('upsellBack').onclick=()=>{$('upsellOv').classList.add('hide');$('startOv').classList.remove('hide');};
+if(DEMO)document.body.classList.add('demo');
+function mapelSet(){return sel.mapel===GURU?custom:poolOf(sel.mapel).map(toSoal);}
+function currentSet(){const a=mapelSet();return sel.mapel===GURU||sel.elemen==='semua'?a:a.filter(q=>q.el===sel.elemen);}
+function cpOf(t){const k=kelasInfo();return((CP_TEKS[k.fase]||{})[k.mapel[sel.mapel]]||{})[t];}
+function setLabel(){return `${sel.jenjang} Kelas ${sel.kelas} (Fase ${kelasInfo().fase}) · ${sel.mapel===GURU?'Soal buatan guru':sel.mapel}${sel.mapel!==GURU&&sel.elemen!=='semua'?' · '+sel.elemen:''}`;}
+function resolveTema(){return sel.tema==='auto'?AUTO_TEMA[sel.jenjang]:sel.tema;}
+function renderChips(){
+  $('temaChips').innerHTML=`<button class="chip${sel.tema==='auto'?' on':''}" data-t="auto">🎯 Otomatis</button>`+
+    Object.entries(THEMES).map(([k,t])=>`<button class="chip${sel.tema===k?' on':''}" data-t="${k}">${t.emoji} ${t.nama}</button>`).join('');
+  const rt=THEMES[resolveTema()];
+  $('temaInfo').textContent=sel.tema==='auto'?`Otomatis untuk ${sel.jenjang}: ${rt.emoji} ${rt.nama} (SD → Sekolah · SMP → Hutan · SMA → Kota · SMK → Galaksi)`:`Tema: ${rt.emoji} ${rt.nama}`;
+  $('jenjangChips').innerHTML=Object.keys(STRUKTUR).map(j=>`<button class="chip${j===sel.jenjang?' on':''}" data-j="${esc(j)}">${esc(j)}</button>`).join('');
+  const ks=Object.keys(STRUKTUR[sel.jenjang]);if(!ks.includes(sel.kelas))sel.kelas=ks[0];
+  $('kelasChips').innerHTML=ks.map(k=>`<button class="chip${k===sel.kelas?' on':''}" data-k="${k}">Kelas ${k}<small> · ${STRUKTUR[sel.jenjang][k].fase}</small></button>`).join('');
+  const allM=Object.keys(kelasInfo().mapel);
+  if(isLocked(sel.mapel)||(sel.mapel!==GURU&&!allM.includes(sel.mapel)))sel.mapel=allM.find(m=>!isLocked(m))||allM[0];
+  if(sel.mapel!==GURU&&allM.includes(sel.mapel))sel.kat=katOf(sel.mapel);
+  const kats=KAT_URUT.filter(k=>allM.some(m=>katOf(m)===k));if(!kats.includes(sel.kat))sel.kat=kats[0];
+  $('katChips').innerHTML=kats.map(k=>`<button class="chip k${k===sel.kat?' on':''}" data-kat="${esc(k)}">${KAT_IKON[k]} ${esc(k)}</button>`).join('');
+  const ms=allM.filter(m=>katOf(m)===sel.kat);
+  if(sel.mapel!==GURU&&!ms.includes(sel.mapel))sel.mapel=ms.find(m=>!isLocked(m))||sel.mapel;
+  $('mapelChips').innerHTML=ms.map(m=>isLocked(m)?`<button class="chip lock" data-lock="1" data-m="${esc(m)}">🔒 ${esc(m)}</button>`:`<button class="chip${m===sel.mapel?' on':''}" data-m="${esc(m)}">${esc(m)}</button>`).join('')+
+    (DEMO?`<button class="chip guru lock" data-lock="1" data-m="${GURU}">🔒 ${GURU}</button>`:`<button class="chip guru${sel.mapel===GURU?' on':''}" data-m="${GURU}">${GURU}${custom.length?` (${custom.length})`:''}</button>`);
+  const n=currentSet().length;
+  const all=mapelSet(),els=[...new Set(all.map(q=>q.el).filter(Boolean))];
+  if(sel.elemen!=='semua'&&!els.includes(sel.elemen))sel.elemen='semua';
+  const n2=currentSet().length;
+  $('setInfo').innerHTML=sel.mapel===GURU?(n?`${n} soal buatan guru siap dimainkan · <a href="#" id="editLink">ubah soal</a>`:'Belum ada soal — klik lagi untuk menulis soal.'):
+    `<b>Fase ${kelasInfo().fase}</b> · ${all.length} soal di bank · mengacu CP ${CP_SUMBER}`;
+  const showEl=sel.mapel!==GURU&&els.length;
+  $('elChips').style.display=$('cpBox').style.display=showEl?'':'none';
+  $('elChips').previousElementSibling.style.display=showEl?'':'none';
+  if(showEl){
+    $('elChips').innerHTML=`<button class="chip el${sel.elemen==='semua'?' on':''}" data-e="semua">Semua elemen <small>${all.length}</small></button>`+
+      els.map(e=>`<button class="chip el${sel.elemen===e?' on':''}" data-e="${esc(e)}">${esc(e)} <small>${all.filter(q=>q.el===e).length}</small></button>`).join('');
+    if(sel.elemen==='semua'){
+      $('cpBox').innerHTML=`<b>Semua elemen CP Fase ${kelasInfo().fase}</b> — ${Math.min(all.length,PER_MAIN)} soal diacak dari ${els.length} elemen/materi. Pilih salah satu elemen untuk melihat teks Capaian Pembelajarannya.`;
+    }else{
+      const c=cpOf(sel.elemen)||{el:sel.elemen,cp:''};
+      $('cpBox').innerHTML=`<b>CP Fase ${kelasInfo().fase} · Elemen: ${esc(c.el)}</b>${c.el!==sel.elemen?`<br><b>Materi:</b> ${esc(sel.elemen)}`:''}<br>${esc(c.cp)}<span class="src">Sumber: Capaian Pembelajaran ${sel.mapel}, ${CP_SUMBER} · ${Math.min(n2,PER_MAIN)} soal per main</span>`;
+    }
+  }
+  const el=$('editLink');if(el)el.onclick=e=>{e.preventDefault();openEditor();};
+  try{localStorage.setItem('lariPintarPilihan',JSON.stringify(sel));}catch(e){}
+  if(typeof previewTheme==='function')previewTheme();
+}
+$('katChips').onclick=e=>{const b=e.target.closest('[data-kat]');if(!b)return;const kk=b.dataset.kat,mm=Object.keys(kelasInfo().mapel).filter(x=>katOf(x)===kk);
+  if(DEMO&&!mm.some(x=>!isLocked(x))){upsell('Kategori '+kk);return;}
+  sel.kat=kk;const m=mm.find(x=>!isLocked(x));if(m){sel.mapel=m;sel.elemen='semua';}renderChips();};
+$('elChips').onclick=e=>{const b=e.target.closest('[data-e]');if(!b)return;sel.elemen=b.dataset.e;renderChips();};
+$('temaChips').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;sel.tema=b.dataset.t;renderChips();};
+$('kelasChips').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;sel.kelas=b.dataset.k;renderChips();};
+$('jenjangChips').onclick=e=>{const b=e.target.closest('[data-j]');if(!b)return;sel.jenjang=b.dataset.j;renderChips();};
+$('mapelChips').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
+  if(b.dataset.lock){upsell(m===GURU?'Upload soal buatan guru':m);return;}
+  if(m===GURU&&(sel.mapel===GURU||!custom.length)){sel.mapel=GURU;renderChips();openEditor();return;}
+  sel.mapel=m;sel.elemen='semua';renderChips();};
+function parseCustom(t){
+  const out=[],errs=[];
+  t.replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.split('\n').map(l=>l.trim()).filter(Boolean)).filter(b=>b.length).forEach((lines,i)=>{
+    const info=(lines.find(l=>/^i:/i.test(l))||'').replace(/^i:\s*/i,'');
+    const rest=lines.filter(l=>!/^i:/i.test(l));const q=rest[0],ops=rest.slice(1);
+    const k=ops.findIndex(o=>o.startsWith('*'));
+    if(ops.length!==3){errs.push(`Soal ${i+1}: harus ada tepat 3 pilihan (sekarang ${ops.length}).`);return;}
+    if(k<0||ops.filter(o=>o.startsWith('*')).length>1){errs.push(`Soal ${i+1}: tandai tepat satu jawaban benar dengan *.`);return;}
+    out.push({q,opsi:ops.map(o=>o.replace(/^\*\s*/,'')),benar:k,info});
+  });
+  return{out,errs};
+}
+function openEditor(){$('custText').value=customText;$('custMsg').textContent='';$('custMsg').style.color='';$('startOv').classList.add('hide');$('editOv').classList.remove('hide');}
+$('custBack').onclick=()=>{$('editOv').classList.add('hide');$('startOv').classList.remove('hide');renderChips();};
+$('custSave').onclick=()=>{
+  const t=$('custText').value,{out,errs}=parseCustom(t);const m=$('custMsg');
+  if(errs.length){m.style.color='#e0563b';m.innerHTML=errs.slice(0,4).map(esc).join('<br>');return;}
+  if(!out.length){m.style.color='#e0563b';m.textContent='Belum ada soal yang ditulis.';return;}
+  custom=out;customText=t;sel.mapel=GURU;
+  try{localStorage.setItem('lariPintarSoalGuru',JSON.stringify(out));localStorage.setItem('lariPintarSoalGuruTeks',t);}catch(e){}
+  m.style.color='#1fa463';m.textContent=`✓ ${out.length} soal tersimpan!`;
+  setTimeout(()=>{$('editOv').classList.add('hide');$('startOv').classList.remove('hide');renderChips();},700);
+};
+
+/* ================= Upload soal: Excel / Word / PDF ================= */
+const LIBS={
+  xlsx:['lib/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'],
+  mammoth:['lib/mammoth.browser.min.js','https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'],
+  pdf:['lib/pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js'],
+  pdfw:['lib/pdf.worker.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'],
+};
+const libP={};
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=()=>res(src);s.onerror=()=>{s.remove();rej(new Error(src));};document.head.appendChild(s);});}
+function needLib(k){
+  if(!libP[k])libP[k]=(async()=>{for(const u of LIBS[k]){try{return await loadScript(u);}catch(e){}}
+    libP[k]=null;throw new Error('Pembaca file gagal dimuat. Periksa koneksi internet lalu coba lagi.');})();
+  return libP[k];
+}
+
+/* 3 pilihan: jawaban benar + 2 pengecoh acak */
+function pick3(items){
+  const ok=items.find(x=>x.ok),wrong=shuffle(items.filter(x=>!x.ok&&x.v)).slice(0,2);
+  if(!ok||!ok.v||wrong.length<2)return null;
+  return{opsi:[ok.v,...wrong.map(x=>x.v)],benar:0};
+}
+const clean=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+
+/* ---------- Excel / CSV ---------- */
+function headerMap(row){
+  const m={opts:[],salah:[]};
+  row.forEach((c,i)=>{const h=clean(c).toLowerCase();if(!h)return;
+    let o;
+    if(m.q==null&&(/pertanyaan|question/.test(h)||(/soal/.test(h)&&!/^no/.test(h))))m.q=i;
+    else if((o=h.match(/^(?:pilihan|opsi|option|jawaban)?\s*([a-e])$/)))m.opts.push({letter:o[1].toUpperCase(),col:i});
+    else if(/kunci|key|benar|correct|^jawaban$/.test(h))m.kunci=i;
+    else if(/salah|wrong|pengecoh|distraktor/.test(h))m.salah.push(i);
+    else if(/penjelasan|pembahasan|keterangan|info/.test(h))m.info=i;
+  });
+  if(m.q==null||(m.kunci==null&&!m.opts.length))return null;
+  return m;
+}
+function rowsToSoal(rows,label){
+  const out=[],skip=[];let hi=-1,map=null;
+  for(let i=0;i<Math.min(rows.length,10);i++){const m=headerMap(rows[i]);if(m){hi=i;map=m;break;}}
+  if(!map)map={q:0,kunci:1,salah:[2,3,4].filter(j=>rows.some(r=>clean(r[j]))),opts:[],info:null};
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i].map(clean),q=r[map.q];if(!q)continue;
+    const key=map.kunci!=null?r[map.kunci]:'';let items;
+    if(map.opts.length){
+      const vals=map.opts.map(o=>r[o.col]);
+      let ki=map.opts.findIndex(o=>o.letter===key.toUpperCase().replace(/[^A-E]/g,'').charAt(0)&&key.replace(/[\s\.\)]/g,'').length===1);
+      if(ki<0)ki=vals.findIndex(v=>v&&v.toLowerCase()===key.toLowerCase());
+      if(ki<0){skip.push(`${label}baris ${i+1}: kunci jawaban tidak terbaca`);continue;}
+      items=vals.map((v,j)=>({v,ok:j===ki}));
+      map.salah.forEach(j=>items.push({v:r[j],ok:false}));
+    }else{
+      items=[{v:key,ok:true},...map.salah.map(j=>({v:r[j],ok:false}))];
+    }
+    const p=pick3(items);
+    if(!p){skip.push(`${label}baris ${i+1}: perlu 1 jawaban benar dan minimal 2 pilihan salah`);continue;}
+    out.push({q,opsi:p.opsi,benar:0,info:map.info!=null?r[map.info]:''});
+  }
+  return{out,skip};
+}
+
+/* ---------- Teks dari Word / PDF ---------- */
+function textToSoal(raw){
+  let t=raw.replace(/\r/g,'').replace(/ /g,' ').replace(/[\t ]+/g,' ');
+  const keyMap={};
+  const ks=t.search(/^\s*kunci\s*jawaban\s*:?\s*$/im);
+  if(ks>=0){const sec=t.slice(ks);t=t.slice(0,ks);
+    const re=/(\d{1,3})\s*[\.\)\-:=]?\s*\(?([A-Ea-e])\b/g;let m;while((m=re.exec(sec)))keyMap[+m[1]]=m[2].toUpperCase();}
+  const lines=[];
+  t.split('\n').forEach(l=>{l=l.trim();if(!l)return;
+    if(/^\*?\s*\(?[A-Ea-e][\.\)]\s/.test(l))l.split(/\s+(?=\*?\s*\(?[B-Eb-e][\.\)]\s)/).forEach(x=>lines.push(x.trim()));
+    else lines.push(l);});
+  const qs=[];let cur=null;
+  for(const l of lines){
+    let m;
+    if((m=l.match(/^(kunci(?:\s*jawaban)?|jawaban(?:\s*benar)?|jawab|answer|key)\s*[:=\-]\s*\(?([A-Ea-e])\b/i))){if(cur)cur.key=m[2].toUpperCase();continue;}
+    if((m=l.match(/^(pembahasan|penjelasan|i)\s*:\s*(.+)$/i))){if(cur)cur.info=m[2];continue;}
+    if((m=l.match(/^(\d{1,3})\s*[\.\)]\s*(.+)$/))&&(!cur||cur.opts.length)){cur={no:+m[1],q:m[2],opts:[],key:null,info:''};qs.push(cur);continue;}
+    if(cur&&(m=l.match(/^(\*)?\s*\(?([A-Ea-e])[\.\)]\s*(.*)$/))){
+      let txt=m[3],star=!!m[1];
+      if(/^\*|\*$|\(benar\)|✓|✔/i.test(txt)){star=true;txt=txt.replace(/^\*\s*|\s*\*$|\s*\(benar\)|\s*[✓✔]/gi,'');}
+      cur.opts.push({letter:m[2].toUpperCase(),v:clean(txt),star});continue;}
+    if(cur){if(!cur.opts.length)cur.q+=' '+l;else cur.opts[cur.opts.length-1].v+=' '+l;}
+  }
+  const out=[],skip=[];
+  qs.forEach(c=>{
+    const key=c.key||keyMap[c.no];
+    let ki=c.opts.findIndex(o=>o.star);if(ki<0&&key)ki=c.opts.findIndex(o=>o.letter===key);
+    if(ki<0){skip.push(`Soal ${c.no}: kunci jawaban tidak ditemukan`);return;}
+    const p=pick3(c.opts.map((o,j)=>({v:clean(o.v),ok:j===ki})));
+    if(!p){skip.push(`Soal ${c.no}: pilihan jawaban kurang dari 3`);return;}
+    out.push({q:clean(c.q),opsi:p.opsi,benar:0,info:clean(c.info)});
+  });
+  if(!qs.length){const r=parseCustom(raw);return{out:r.out,skip:r.errs};}
+  return{out,skip};
+}
+
+/* Word: penomoran otomatis (list) diubah jadi 1. 2. ... dan A. B. ... */
+function htmlToText(html){
+  const doc=new DOMParser().parseFromString(html,'text/html'),out=[];let qNo=0;
+  const txt=el=>{const c=el.cloneNode(true);c.querySelectorAll('ol,ul').forEach(x=>x.remove());return c.textContent.replace(/\s+/g,' ').trim();};
+  function walk(parent,depth){
+    for(const el of parent.children){
+      const tag=el.tagName;
+      if(tag==='OL'||tag==='UL'){let i=0;
+        for(const li of el.children){if(li.tagName!=='LI')continue;i++;
+          const t=txt(li);const has=/^(\d{1,3}[\.\)]|\*?\s*\(?[A-Ea-e][\.\)])\s/.test(t);
+          out.push(has?t:(depth===0?(++qNo)+'. ':String.fromCharCode(64+Math.min(i,26))+'. ')+t);
+          for(const sub of li.children)if(sub.tagName==='OL'||sub.tagName==='UL')walk({children:[sub]},depth+1);}
+      }else if(tag==='TABLE'){el.querySelectorAll('tr').forEach(tr=>tr.querySelectorAll('td,th').forEach(td=>{const t=td.textContent.replace(/\s+/g,' ').trim();if(t)out.push(t);}));}
+      else{const t=el.textContent.replace(/\s+/g,' ').trim();if(t)out.push(t);}
+    }
+  }
+  walk(doc.body,0);return out.join('\n');
+}
+async function pdfText(buf){
+  await needLib('pdf');await needLib('pdfw');
+  pdfjsLib.GlobalWorkerOptions.workerSrc=LIBS.pdfw[0];
+  const doc=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;let text='';
+  for(let p=1;p<=doc.numPages;p++){
+    const tc=await(await doc.getPage(p)).getTextContent();let lastY=null;
+    for(const it of tc.items){const y=it.transform[5];
+      if(lastY!==null&&Math.abs(y-lastY)>2&&!text.endsWith('\n'))text+='\n';
+      text+=it.str;if(it.hasEOL)text+='\n';lastY=y;}
+    text+='\n';
+  }
+  return text;
+}
+async function fileToSoal(file){
+  const n=file.name.toLowerCase(),buf=await file.arrayBuffer();
+  if(/\.(xlsx|xls|csv|ods)$/.test(n)){
+    await needLib('xlsx');const wb=XLSX.read(buf,{type:'array'});let out=[],skip=[];
+    wb.SheetNames.forEach(sn=>{const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:'',raw:false});
+      const r=rowsToSoal(rows,wb.SheetNames.length>1?`Sheet "${sn}", `:'');out=out.concat(r.out);skip=skip.concat(r.skip);});
+    return{out,skip};
+  }
+  if(n.endsWith('.docx')){await needLib('mammoth');const r=await mammoth.convertToHtml({arrayBuffer:buf});return textToSoal(htmlToText(r.value));}
+  if(n.endsWith('.pdf'))return textToSoal(await pdfText(buf));
+  if(n.endsWith('.txt'))return textToSoal(new TextDecoder().decode(buf));
+  if(n.endsWith('.doc'))throw new Error('File .doc (Word lama) belum didukung. Buka di Word lalu Save As → Word Document (.docx).');
+  throw new Error('Format file belum didukung. Gunakan Excel (.xlsx/.csv), Word (.docx), atau PDF.');
+}
+function soalToText(arr){return arr.map(s=>[s.q,...s.opsi.map((o,i)=>(i===s.benar?'*':'')+o),...(s.info?['i: '+s.info]:[])].join('\n')).join('\n\n');}
+
+$('custFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;const m=$('custMsg');
+  m.style.color='#2f7de1';m.textContent=`⏳ Membaca ${f.name} ...`;
+  try{
+    const{out,skip}=await fileToSoal(f);
+    if(!out.length){m.style.color='#e0563b';m.innerHTML=`Tidak ada soal yang terbaca dari <b>${esc(f.name)}</b>. Cek format file (lihat panduan di atas).`+(skip.length?'<br>'+skip.slice(0,4).map(esc).join('<br>'):'');return;}
+    $('custText').value=soalToText(out);
+    m.style.color='#1fa463';
+    m.innerHTML=`✓ ${out.length} soal terbaca dari <b>${esc(f.name)}</b>. Periksa di kotak bawah, lalu klik <b>Simpan soal</b>.`+
+      (skip.length?`<br><span style="color:#e0563b">${skip.length} soal dilewati: ${skip.slice(0,3).map(esc).join('; ')}${skip.length>3?' …':''}</span>`:'');
+  }catch(err){m.style.color='#e0563b';m.textContent='⚠️ '+(err.message||err);}
+});
+
+
+/* ================= Mulai / selesai ================= */
+let built=false,buildP=null;
+function ensureBuilt(){return buildP||(buildP=(async()=>{try{await document.fonts.load('800 40px "Baloo 2"');await document.fonts.load('700 40px "Baloo 2"');}catch(e){}
+  buildGround();buildPlayer();built=true;})());}
+function previewTheme(){ensureBuilt().then(()=>{if(!running){applyTheme(resolveTema());setSigns(sel.mapel.startsWith('Projek IPAS')?SUBSEKTOR:THEMES[resolveTema()].signs==='kota'?KOTA:SEKOLAH);}});}
+async function startGame(){
+  initAudio();
+  await ensureBuilt();
+  if(!currentSet().length){openEditor();return;}
+  const tk=resolveTema();applyTheme(tk);
+  setSigns(sel.mapel.startsWith('Projek IPAS')?SUBSEKTOR:THEMES[tk].signs==='kota'?KOTA:SEKOLAH);
+  clearWorld();S=newState();
+  player.lane=0;player.x=0;player.y=0;player.vy=0;player.inv=0;
+  $('startOv').classList.add('hide');$('endOv').classList.add('hide');$('hud').style.display='flex';$('touch').classList.add('on');
+  $('qcard').classList.remove('show');$('fb').classList.remove('show');
+  updateHUD();running=true;paused=false;
+}
+function endGame(){
+  running=false;$('qcard').classList.remove('show');$('touch').classList.remove('on');
+  const n=S.qs.length,c=S.correct,pct=c/n;
+  const st=pct>=0.9?3:pct>=0.7?2:pct>=0.4?1:0;
+  $('stars').textContent='★'.repeat(st)+'☆'.repeat(3-st);
+  $('endTitle').textContent=st===3?'Luar biasa!':st===2?'Hebat!':st===1?'Lumayan!':'Ayo coba lagi!';
+  $('endName').innerHTML=`${esc(S.name)}<br><span style="font-size:14px;font-weight:600;color:#556">${esc(S.label)}</span>`;
+  $('rBenar').textContent=`${c}/${n}`;$('rSkor').textContent=S.score;$('rKoin').textContent=S.coins;
+  const per={};S.qs.forEach(q=>{if(!q.el)return;const e=per[q.el]||(per[q.el]={b:0,n:0});e.n++;if(q.ok)e.b++;});
+  const rek=Object.entries(per).map(([e,v])=>{const p=Math.round(v.b/v.n*100);return`<div class="rk"><span>${esc(e)}</span><b>${v.b}/${v.n}</b><i style="--p:${p}%;--c:${p>=75?'#1fa463':p>=50?'#f29b1d':'#e0563b'}"></i></div>`;}).join('');
+  $('rekap').innerHTML=rek?`<h3>Capaian per elemen CP</h3>${rek}`:'';
+  $('rev').innerHTML=S.wrong.length?`<h3>Yang perlu dipelajari lagi:</h3><ul>${S.wrong.map(q=>`<li>${esc(q.q)}<br>→ <em>${esc(q.opsi[q.benar])}</em></li>`).join('')}</ul>`:(S.correct>=S.qs.length?'<h3>🎉 Semua jawaban benar!</h3>':'');
+  const d=new Date();$('meta').textContent=`Nilai: ${Math.round(pct*100)} · ${d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} ${d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}`;
+  $('endOv').classList.remove('hide');
+}
+$('startBtn').onclick=startGame;
+$('nama').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+$('againBtn').onclick=()=>{$('endOv').classList.add('hide');$('startOv').classList.remove('hide');};
+
+/* ================= Loop ================= */
+const clock=new THREE.Clock();
+function frame(){
+  requestAnimationFrame(frame);
+  let dt=Math.min(clock.getDelta(),0.05);
+  if(!built){renderer.render(scene,camera);return;}
+  if(running&&!paused)update(dt);
+  else if(!running){player.g&&(player.g.rotation.y+=dt*0.6*0);}
+  // kamera
+  const cx=player.x*0.55;
+  let sx=0,sy=0;if(S&&S.shake>0){sx=rand(-.15,.15);sy=rand(-.15,.15);}
+  camera.position.set(cx+sx,3.7+player.y*0.35+sy,6.6);
+  camera.lookAt(cx,1.3+player.y*0.2,-7);
+  renderer.render(scene,camera);
+}
+function update(dt){
+  S.t+=dt;
+  // kecepatan: pelan saat ada soal agar sempat membaca
+  const base=12+Math.min(S.qi*0.45,6);const target=(S.gate?base*0.78:base)*(S.slow>0?0.55:1);
+  S.speed+=(target-S.speed)*Math.min(1,dt*2.5);
+  S.slow=Math.max(0,S.slow-dt);S.shake=Math.max(0,S.shake-dt);
+  const d=S.speed*dt;S.dist+=d;
+  roadTex.offset.y+=d/8;grassTex.offset.y+=d/8;
+
+  // spawn
+  if(!S.finished){
+    S.sinceRow+=d;
+    const gateClear=!S.gate||S.gate.m.position.z>SPAWN_Z+20;
+    if(S.sinceRow>=ROW_GAP&&gateClear){S.sinceRow=0;
+      if(!S.gate&&S.rows>=ROWS_PER_Q&&S.qi<S.qs.length){S.gate=addGate(S.qs[S.qi]);showQuestion(S.qs[S.qi],S.qi+1);updateHUD();}
+      else{spawnRow(S.rows>=ROWS_PER_Q-2);S.rows++;}
+    }
+  }
+
+  // pemain
+  const tx=player.lane*LANE_W;player.x+=(tx-player.x)*Math.min(1,dt*14);
+  player.vy+=GRAV*dt;player.y+=player.vy*dt;if(player.y<0){player.y=0;player.vy=0;}
+  player.g.position.set(player.x,player.y,0);
+  player.g.rotation.z=(player.x-tx)*0.12;
+  const ph=S.t*S.speed*0.85,air=player.y>0.01;
+  player.legs[0].rotation.x=air?-0.6:Math.sin(ph)*0.9;player.legs[1].rotation.x=air?0.4:-Math.sin(ph)*0.9;
+  player.arms[0].rotation.x=air?-2.4:-Math.sin(ph)*0.9;player.arms[1].rotation.x=air?-2.4:Math.sin(ph)*0.9;
+  player.g.children[0].position.y=1.15+(air?0:Math.abs(Math.sin(ph))*0.06);
+  if(player.inv>0){player.inv-=dt;player.g.visible=Math.floor(player.inv*12)%2===0;}else player.g.visible=true;
+
+  // objek
+  for(let i=objs.length-1;i>=0;i--){
+    const o=objs[i];o.m.position.z+=d;const z=o.m.position.z;
+    if(o.type==='coin'){o.m.rotation.z+=dt*5;
+      if(Math.abs(z)<0.8&&Math.abs(o.m.position.x-player.x)<0.9&&Math.abs(player.y+0.8-o.y)<1.0){
+        S.coins++;S.score+=5;sfx.coin();burst(o.m.position.x,o.y,z,0xffd54a,6);removeObj(o);objs.splice(i,1);updateHUD();continue;}
+    }else if(o.type==='crate'||o.type==='wall'){
+      if(!o.hit&&Math.abs(z)<0.75&&Math.abs(o.lane*LANE_W-player.x)<1.1&&player.y<o.h&&player.inv<=0){
+        o.hit=true;player.inv=1.2;S.slow=0.8;S.shake=0.35;S.score=Math.max(0,S.score-20);sfx.hit();
+        burst(player.x,1,0,0xb07a42,10);updateHUD();}
+    }else if(o.type==='gate'){
+      const near=z>-30;o.panels.forEach((p,k)=>{const on=near&&k===player.lane+1;const s=on?1.12:1;p.scale.set(s,s,1);});
+      if(z>=0&&!o.judged){o.judged=true;judgeGate(o);}
+    }
+    if(z>12){removeObj(o);objs.splice(i,1);}
+  }
+  // dekorasi
+  for(const m of decos){m.position.z+=d;if(m.position.z>14)m.position.z-=DECO_SPAN;if(m.userData.spin)m.rotation.y+=dt*m.userData.spin;}
+  // partikel
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt;p.v.y+=GRAV*0.5*dt;p.m.position.addScaledVector(p.v,dt);p.m.position.z+=d;p.m.rotation.x+=dt*8;
+    if(p.life<=0){scene.remove(p.m);p.m.geometry.dispose();parts.splice(i,1);}}
+}
+camera.position.set(0,3.7,6.6);camera.lookAt(0,1.3,-7);
+renderChips();
+frame();
+</script>
+</body>
+</html>
